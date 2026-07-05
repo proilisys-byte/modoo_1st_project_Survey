@@ -300,17 +300,17 @@ export const SECTIONS: Section[] = [
         required: true,
         // T-05 v2: b4_v2_* 신규 key (v1 "1"~"5" deprecated). 일수 절단 → lib/boundaries.ts
         options: [
-          { value: "b4_v2_lte1w", label: "1주 이내" },
-          { value: "b4_v2_1_2w", label: "1~2주" },
-          { value: "b4_v2_2_4w", label: "2~4주" },
-          { value: "b4_v2_gt4w", label: "1개월(4주) 초과" },
+          { value: "b4_v2_lte1w", label: "1주일 이내 (신속 종결)" },
+          { value: "b4_v2_1_2w", label: "1~2주일" },
+          { value: "b4_v2_2_4w", label: "2~4주일" },
+          { value: "b4_v2_gt4w", label: "1개월(4주) 초과 (장기 미결)" },
           {
             value: "b4_v2_effect_weak",
-            label: "작성은 하지만 효과확인까지 가는 경우가 드물다",
+            label: "보고서는 작성하지만 대책의 효과 검증(유효성 확인) 단계는 미흡하다",
           },
           {
             value: "b4_v2_not_operated",
-            label: "정식 CAPA 절차 자체가 잘 운영되지 않는다",
+            label: "회사 내 정식 시정조치(CAPA) 프로세스가 없거나 유명무실하다",
           },
         ],
       },

@@ -597,11 +597,11 @@ export default function SurveyApp() {
     answers,
     sectionDisplayOrder
   );
+  const ALL_QUESTIONS = SECTIONS.flatMap((s) => s.questions);
   const percent = (step / (CONTACT_STEP + 1)) * 100;
-  let questionNumber = countQuestionsBefore(step - 1, answers, sectionDisplayOrder);
   const psmWarning =
     section.id === "E" && isPsmInconsistent(answers);
-
+ 
   return (
     <div className="pb-16">
       <ProgressBar
@@ -614,7 +614,7 @@ export default function SurveyApp() {
             {section.intro}
           </div>
         )}
-
+ 
         {section.id === "C" && (
           <div className="mb-5 rounded-2xl bg-white p-5 shadow-sm border border-slate-100">
             <p className="mb-3 text-sm font-bold">척도 기준 안내</p>
@@ -652,16 +652,16 @@ export default function SurveyApp() {
             </div>
           </div>
         )}
-
+ 
         {psmWarning && (
           <div className="mb-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             금액 순서가 일반적인 패턴과 다릅니다. 다시 한번 확인해 주세요.
           </div>
         )}
-
+ 
         <div className="space-y-4">
           {visibleQuestions.map((q) => {
-            questionNumber += 1;
+            const questionNumber = ALL_QUESTIONS.findIndex((item) => item.id === q.id) + 1;
             const shuffledOptions =
               q.id === "C9" && sectionDisplayOrder
                 ? getShuffledMultiOptions(q, sectionDisplayOrder.C9_options)
