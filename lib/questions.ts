@@ -561,6 +561,7 @@ export const SECTIONS: Section[] = [
           { value: "4", label: "회사 데이터(공정·불량 정보) 외부 유출 우려" },
           { value: "5", label: "효과에 대한 확신 부족 (검증 사례 필요)" },
           { value: "6", label: "장애물 없음" },
+          { value: "7", label: "기타", hasText: true },
         ],
       },
       {

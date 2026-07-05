@@ -24,8 +24,15 @@ export function isAnswered(
 ): boolean {
   const v = answers[q.id];
   switch (q.type) {
-    case "single":
-      return typeof v === "string" && v.length > 0;
+    case "single": {
+      if (typeof v !== "string" || v.length === 0) return false;
+      const opt = q.options.find((o) => o.value === v);
+      if (opt?.hasText) {
+        const other = answers[`${q.id}_other_${opt.value}`];
+        return typeof other === "string" && other.trim().length > 0;
+      }
+      return true;
+    }
     case "multi": {
       if (!Array.isArray(v) || v.length === 0) return false;
       if (q.exact) return v.length === q.exact;
