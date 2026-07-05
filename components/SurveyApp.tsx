@@ -12,15 +12,18 @@ import {
   getOrderedSectionCQuestions,
   getShuffledMultiOptions,
   getVisibleQuestions,
+  isAnswered,
   isPhoneRequired,
+  findFirstUnansweredRequired,
 } from "@/lib/question-utils";
 import { isPsmInconsistent } from "@/lib/psm";
 import { attentionPassed, diagnose, type DiagnosisResult } from "@/lib/scoring";
 import { SCORING_CONFIG_VERSION, SURVEY_VERSION } from "@/lib/survey-meta";
+import { buildResultSnapshot } from "@/lib/result-snapshot";
 import { submitCtaRequest, submitResponse, type CtaType } from "@/lib/supabase";
 import { sendReportEmail } from "@/lib/send-report";
 import { resendReportEmail } from "@/lib/resend-report";
-import QuestionBlock, { isAnswered } from "./QuestionBlock";
+import QuestionBlock from "./QuestionBlock";
 import ResultView from "./ResultView";
 import { ProgressBar, WaferMark } from "./ui";
 
@@ -210,8 +213,18 @@ export default function SurveyApp() {
       setShowError(true);
       return;
     }
+    const missingId = findFirstUnansweredRequired(answers, displayOrder);
+    if (missingId) {
+      setShowError(true);
+      setSubmitting(false);
+      document
+        .getElementById(`q-${missingId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setSubmitting(true);
     const diagnosis = diagnose(answers);
+    const resultSnapshot = buildResultSnapshot(diagnosis, SCORING_CONFIG_VERSION);
     const uid =
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
@@ -255,6 +268,7 @@ export default function SurveyApp() {
       psm_inconsistent: isPsmInconsistent(answers),
       scoring_config_version: SCORING_CONFIG_VERSION,
       c_display_order: displayOrder,
+      result_snapshot: resultSnapshot,
     });
     setSaved(res.saved);
     setSaveError(res.error);

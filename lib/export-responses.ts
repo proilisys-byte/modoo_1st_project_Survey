@@ -1,8 +1,9 @@
 /**
- * T-17: PII 제외 분석용 export 레코드 변환
- * lib/scoring.ts diagnose()로 도메인 점수 파생
+ * T-17: PII 제외 분석용 export — result_snapshot 우선, 없으면 재계산(recomputed=true)
  */
-import { diagnose, type Answers } from "./scoring";
+import { resolveResult } from "./resolve-result";
+import type { Answers } from "./scoring";
+import type { ResultSnapshot } from "./result-snapshot";
 
 /** DB survey_responses 행 (PII 필드 포함 가능 — export 시 제외) */
 export type SurveyResponseRow = {
@@ -33,6 +34,7 @@ export type SurveyResponseRow = {
   scoring_config_version?: string | null;
   benchmark_version?: string | null;
   c_display_order?: unknown;
+  result_snapshot?: ResultSnapshot | null;
 };
 
 /** analysis/data/raw/*.jsonl 한 줄 형식 (PII 없음) */
@@ -58,26 +60,34 @@ export type AnalysisExportRecord = {
   email_status?: string | null;
   c_display_order?: unknown;
   benchmark_version?: string | null;
+  recomputed: boolean;
+  top3_computed: Array<{ id: string; burden: number; short: string }>;
 };
 
 const PII_FIELDS = ["email", "phone", "company", "job_title"] as const;
 
 export function toAnalysisExport(row: SurveyResponseRow): AnalysisExportRecord {
-  const d = diagnose(row.answers);
+  const resolved = resolveResult({
+    answers: row.answers,
+    result_snapshot: row.result_snapshot,
+    scoring_config_version: row.scoring_config_version,
+  });
   return {
     response_id: row.id || row.submission_uid || "unknown",
     survey_version: row.survey_version ?? "v2",
-    scoring_config_version: row.scoring_config_version ?? "v1",
+    scoring_config_version: resolved.scoring_config_version,
     duration_seconds: row.duration_seconds,
     attention_passed: row.attention_passed,
     psm_inconsistent: Boolean(row.psm_inconsistent),
-    score: d.total,
-    grade_code: d.gradeCode,
-    d1: Math.round(d.axes[0].score),
-    d2: Math.round(d.axes[1].score),
-    d3: Math.round(d.axes[2].score),
-    d4: Math.round(d.axes[3].score),
-    pain_scores: d.painScores,
+    score: resolved.total,
+    grade_code: resolved.grade_code,
+    d1: resolved.d1,
+    d2: resolved.d2,
+    d3: resolved.d3,
+    d4: resolved.d4,
+    pain_scores: resolved.pain_scores,
+    top3_computed: resolved.top3_computed,
+    recomputed: resolved.recomputed,
     answers: row.answers,
     created_at: row.created_at,
     submission_uid: row.submission_uid,

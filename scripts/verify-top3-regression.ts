@@ -7,6 +7,8 @@ import {
   PAIN_QUESTION_IDS,
   type CDisplayOrder,
 } from "../lib/display-order";
+import { SECTIONS } from "../lib/questions";
+import { isAnswered } from "../lib/question-utils";
 import {
   buildPainScores,
   buildTop3Risks,
@@ -157,7 +159,15 @@ assert(
   "C1 must be absent from pain_scores when sev missing"
 );
 
+// --- 6) C1 sev 필수 검증 (key 기준, C_ATT만 sevOptional) ---
+const c1Question = SECTIONS.find((s) => s.id === "C")!.questions.find(
+  (q) => q.id === "C1"
+)!;
+assert(!isAnswered(c1Question, { C1: { freq: 2 } }), "C1 freq-only must fail isAnswered");
+assert(isAnswered(c1Question, { C1: { freq: 2, sev: 2 } }), "C1 with sev must pass");
+
 console.log("OK: TOP3 regression — differential, display_order invariant, tie rules, C_ATT exclude");
+console.log("OK: submit validation blocks C1 without sev");
 console.log("OK: differential TOP3=C4,C6,C7 burdens=25,20,15");
 console.log("OK: all-tie TOP3=C1,C2,C3");
 console.log("OK: C1 sev missing reproduces C2,C3,C4 @ burden 4");

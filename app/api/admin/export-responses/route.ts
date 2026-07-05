@@ -60,6 +60,7 @@ export async function GET(request: Request) {
         "email_status",
         "c_display_order",
         "benchmark_version",
+        "result_snapshot",
       ].join(",")
     )
     .order("created_at", { ascending: false })

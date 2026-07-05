@@ -1,0 +1,6 @@
+{
+  "version": "v2",
+  "top3_tiebreak": ["burden_desc", "sev_desc", "canonical_c1_c8"],
+  "scoring_pain_ids": ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"],
+  "excluded_from_top3": ["C_ATT", "C9"]
+}

@@ -1,7 +1,15 @@
 # lib/scoring.ts diagnose() 에서 export (2026-07-05)
-# 문서 추정표(Q15/Q16 등)가 아닌 실제 코드 기준
-version: v1
+# scoring_config_version v2: TOP3 동점 규칙 명시 (config/scoring_rules.json)
+version: v2
 source: lib/scoring.ts
+
+top3_tiebreak:
+  - burden_desc
+  - sev_desc
+  - canonical_c1_c8
+
+scoring_pain_ids: [C1, C2, C3, C4, C5, C6, C7, C8]
+excluded_from_top3: [C_ATT, C9]
 
 domains:
   d1:

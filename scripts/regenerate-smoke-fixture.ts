@@ -44,7 +44,7 @@ const SEED: SurveyResponseRow[] = [
     attention_passed: true,
     duration_seconds: 620,
     survey_version: "v2",
-    scoring_config_version: "v1",
+    scoring_config_version: "v2",
     psm_inconsistent: false,
   },
   {
@@ -74,7 +74,7 @@ const SEED: SurveyResponseRow[] = [
     attention_passed: false,
     duration_seconds: 90,
     survey_version: "v2",
-    scoring_config_version: "v1",
+    scoring_config_version: "v2",
     psm_inconsistent: true,
   },
   {
@@ -110,7 +110,7 @@ const SEED: SurveyResponseRow[] = [
     attention_passed: true,
     duration_seconds: 540,
     survey_version: "v2",
-    scoring_config_version: "v1",
+    scoring_config_version: "v2",
     psm_inconsistent: false,
   },
 ];

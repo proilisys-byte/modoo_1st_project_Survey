@@ -14,6 +14,8 @@ export function getSupabase(): SupabaseClient | null {
 
 export type EmailStatus = "pending" | "sent" | "failed";
 
+import type { ResultSnapshot } from "./result-snapshot";
+
 export type SubmissionPayload = {
   submission_uid: string;
   answers: Record<string, unknown>;
@@ -40,6 +42,7 @@ export type SubmissionPayload = {
   psm_inconsistent: boolean;
   scoring_config_version: string;
   c_display_order: CDisplayOrder | null;
+  result_snapshot: ResultSnapshot | null;
 };
 
 /** 응답 저장 — 성공 여부를 반환하고 실패해도 UI 흐름은 막지 않는다 */

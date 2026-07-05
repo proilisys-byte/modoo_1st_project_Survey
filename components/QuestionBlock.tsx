@@ -8,7 +8,10 @@ import {
   type Option,
 } from "@/lib/questions";
 import type { DualAnswer } from "@/lib/scoring";
+import { isAnswered } from "@/lib/question-utils";
 import { ErrorText, OptionCard, ScaleRow } from "./ui";
+
+export { isAnswered };
 
 type Props = {
   question: Question;
@@ -16,45 +19,8 @@ type Props = {
   answers: Record<string, unknown>;
   showError: boolean;
   onAnswer: (id: string, value: unknown) => void;
-  /** T-12: C9 등 보기 무작위 순서 */
   shuffledOptions?: Option[];
 };
-
-export function isAnswered(
-  q: Question,
-  answers: Record<string, unknown>
-): boolean {
-  const v = answers[q.id];
-  switch (q.type) {
-    case "single": {
-      if (typeof v !== "string" || v.length === 0) return false;
-      const opt = q.options.find((o) => o.value === v);
-      if (opt?.hasText) {
-        const other = answers[`${q.id}_other_${opt.value}`];
-        return typeof other === "string" && other.trim().length > 0;
-      }
-      return true;
-    }
-    case "multi": {
-      if (!Array.isArray(v) || v.length === 0) return false;
-      if (q.exact) return v.length === q.exact;
-      return true;
-    }
-    case "dualScale": {
-      const d = v as DualAnswer | undefined;
-      if (typeof d?.freq !== "number") return false;
-      if ("sevOptional" in q && q.sevOptional) return true;
-      return typeof d.sev === "number";
-    }
-    case "matrix5":
-    case "priceMatrix": {
-      const m = (v ?? {}) as Record<string, number>;
-      return q.rows.every((r) => typeof m[r.id] === "number");
-    }
-    case "text":
-      return !q.required || (typeof v === "string" && v.trim().length > 0);
-  }
-}
 
 function OtherInput({
   option,

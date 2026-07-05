@@ -1,8 +1,64 @@
 import type { Option, Question, ShowIf } from "./questions";
+import type { DualAnswer } from "./scoring";
+import { SECTIONS } from "./questions";
 import {
   TOP3_QUESTION_ID,
   type CDisplayOrder,
 } from "./display-order";
+
+export function isAnswered(
+  q: Question,
+  answers: Record<string, unknown>
+): boolean {
+  const v = answers[q.id];
+  switch (q.type) {
+    case "single": {
+      if (typeof v !== "string" || v.length === 0) return false;
+      const opt = q.options.find((o) => o.value === v);
+      if (opt?.hasText) {
+        const other = answers[`${q.id}_other_${opt.value}`];
+        return typeof other === "string" && other.trim().length > 0;
+      }
+      return true;
+    }
+    case "multi": {
+      if (!Array.isArray(v) || v.length === 0) return false;
+      if (q.exact) return v.length === q.exact;
+      return true;
+    }
+    case "dualScale": {
+      const d = v as DualAnswer | undefined;
+      if (typeof d?.freq !== "number") return false;
+      // key 기준: C_ATT만 questions.ts sevOptional=true
+      if ("sevOptional" in q && q.sevOptional) return true;
+      return typeof d.sev === "number";
+    }
+    case "matrix5":
+    case "priceMatrix": {
+      const m = (v ?? {}) as Record<string, number>;
+      return q.rows.every((r) => typeof m[r.id] === "number");
+    }
+    case "text":
+      return !q.required || (typeof v === "string" && v.trim().length > 0);
+  }
+}
+
+/** 제출 직전 전 섹션 검증 — localStorage contact(step) 우회 방지 */
+export function findFirstUnansweredRequired(
+  answers: Record<string, unknown>,
+  displayOrder: CDisplayOrder | null
+): string | null {
+  for (const section of SECTIONS) {
+    let qs = section.questions;
+    if (section.id === "C" && displayOrder) {
+      qs = getOrderedSectionCQuestions(qs, displayOrder);
+    }
+    const visible = getVisibleQuestions(qs, answers);
+    const missing = visible.find((q) => q.required && !isAnswered(q, answers));
+    if (missing) return missing.id;
+  }
+  return null;
+}
 
 export function isQuestionVisible(
   q: Question,
