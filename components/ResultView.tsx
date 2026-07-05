@@ -39,6 +39,8 @@ export default function ResultView({
   initialPhone,
   saved,
   saveError,
+  emailSent,
+  emailError,
   onCtaRequest,
 }: {
   result: DiagnosisResult;
@@ -46,6 +48,8 @@ export default function ResultView({
   initialPhone: string;
   saved: boolean;
   saveError?: string;
+  emailSent: boolean;
+  emailError?: string;
   onCtaRequest: (
     ctaType: CtaType,
     phone: string
@@ -264,11 +268,19 @@ export default function ResultView({
           끝까지 응답해 주셔서 감사합니다.
         </p>
         {saved ? (
-          <p className="mt-2 text-[15px]">
-            상세 진단 리포트가{" "}
-            <span className="font-semibold text-brand-700">{email}</span> 으로
-            발송될 예정입니다.
-          </p>
+          emailSent ? (
+            <p className="mt-2 text-[15px]">
+              상세 진단 리포트가{" "}
+              <span className="font-semibold text-brand-700">{email}</span> 으로
+              발송되었습니다. 메일함(스팸함 포함)을 확인해 주세요.
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-amber-700">
+              응답은 저장되었습니다. 진단 리포트 이메일 발송에 실패했습니다
+              {emailError ? ` — ${emailError}` : ""}. 화면의 결과는 정상이며,
+              관리자에게 문의해 주세요.
+            </p>
+          )
         ) : (
           <p className="mt-2 text-sm text-amber-700">
             응답이 서버에 저장되지 않았습니다

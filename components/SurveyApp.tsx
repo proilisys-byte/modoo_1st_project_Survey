@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FREQ_LABELS, SECTIONS, SEV_LABELS } from "@/lib/questions";
 import { attentionPassed, diagnose, type DiagnosisResult } from "@/lib/scoring";
 import { submitCtaRequest, submitResponse, type CtaType } from "@/lib/supabase";
+import { sendReportEmail } from "@/lib/send-report";
 import QuestionBlock, { isAnswered } from "./QuestionBlock";
 import ResultView from "./ResultView";
 import { ProgressBar, WaferMark } from "./ui";
@@ -46,6 +48,8 @@ export default function SurveyApp() {
   const [result, setResult] = useState<DiagnosisResult | null>(null);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | undefined>();
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState<string | undefined>();
   const [resumed, setResumed] = useState(false);
   const [submissionUid, setSubmissionUid] = useState("");
   const restoredRef = useRef(false);
@@ -156,6 +160,18 @@ export default function SurveyApp() {
     });
     setSaved(res.saved);
     setSaveError(res.error);
+    if (res.saved) {
+      const emailRes = await sendReportEmail({
+        to: contact.email.trim(),
+        company: contact.company.trim() || null,
+        result: diagnosis,
+      });
+      setEmailSent(emailRes.sent);
+      setEmailError(emailRes.error);
+    } else {
+      setEmailSent(false);
+      setEmailError(undefined);
+    }
     setResult(diagnosis);
     setSubmitting(false);
     try {
@@ -191,6 +207,8 @@ export default function SurveyApp() {
         initialPhone={contact.phone}
         saved={saved}
         saveError={saveError}
+        emailSent={emailSent}
+        emailError={emailError}
         onCtaRequest={handleCtaRequest}
       />
     );
@@ -249,9 +267,12 @@ export default function SurveyApp() {
               className="mt-1 h-4 w-4 accent-brand-600"
             />
             <span className="text-sm text-ink-700">
-              개인정보 수집·이용에 동의합니다
+              <Link href="/privacy" className="text-brand-600 underline">
+                개인정보처리방침
+              </Link>
+              에 동의합니다
               <span className="block text-xs text-ink-500 mt-0.5">
-                이메일·직무·산업군 / 진단 리포트 발송 및 통계 분석 목적 / 1년
+                이메일·직무·산업군 / 진단 리포트 발송 및 통계 분석 목적 / 3년
                 보관 후 파기
               </span>
             </span>
@@ -400,7 +421,11 @@ export default function SurveyApp() {
                   className="mt-0.5 h-4 w-4 accent-brand-600"
                 />
                 <span className="text-sm text-ink-700">
-                  진단 리포트 및 관련 자료 수신에 동의합니다.
+                  진단 리포트 및 관련 자료 수신에 동의합니다. (
+                  <Link href="/privacy" className="text-brand-600 underline">
+                    개인정보처리방침
+                  </Link>
+                  )
                 </span>
               </label>
               {showError && !contact.reportConsent && (
