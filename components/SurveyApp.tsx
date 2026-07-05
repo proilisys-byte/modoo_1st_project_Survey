@@ -20,6 +20,12 @@ import { isPsmInconsistent } from "@/lib/psm";
 import { attentionPassed, diagnose, type DiagnosisResult } from "@/lib/scoring";
 import { SCORING_CONFIG_VERSION, SURVEY_VERSION } from "@/lib/survey-meta";
 import { buildResultSnapshot } from "@/lib/result-snapshot";
+import {
+  clearSavedState,
+  readSavedState,
+  writeSavedState,
+  type SavedContact,
+} from "@/lib/survey-storage";
 import { submitCtaRequest, submitResponse, type CtaType } from "@/lib/supabase";
 import { sendReportEmail } from "@/lib/send-report";
 import { resendReportEmail } from "@/lib/resend-report";
@@ -27,19 +33,9 @@ import QuestionBlock from "./QuestionBlock";
 import ResultView from "./ResultView";
 import { ProgressBar, WaferMark } from "./ui";
 
-const STORAGE_KEY = "proali_survey_v2";
-
 // step: 0 = 인트로, 1~5 = 섹션 A~E, 6 = 연락처, 7 = 결과
 const CONTACT_STEP = SECTIONS.length + 1;
 const RESULT_STEP = SECTIONS.length + 2;
-
-type SavedState = {
-  step: number;
-  answers: Record<string, unknown>;
-  startedAt: number | null;
-  contact: Contact;
-  displayOrder: CDisplayOrder | null;
-};
 
 function resolveSectionQuestions(
   sectionId: string,
@@ -102,43 +98,31 @@ export default function SurveyApp() {
   const [displayOrder, setDisplayOrder] = useState<CDisplayOrder | null>(null);
   const restoredRef = useRef(false);
 
-  // 이어하기: 저장된 진행 상태 복원
+  // 이어하기: survey_version·scoring_config_version 일치 시에만 복원
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const s = JSON.parse(raw) as SavedState;
-        if (s.step > 0 && s.step < RESULT_STEP) {
-          setStep(s.step);
-          setAnswers(s.answers ?? {});
-          const raw = s.contact as Partial<Contact & { reportConsent?: boolean }>;
-          setContact({
-            ...EMPTY_CONTACT,
-            ...raw,
-            consentRequired: raw.consentRequired ?? raw.reportConsent ?? false,
-            marketingOptIn: raw.marketingOptIn ?? false,
-          });
-          setDisplayOrder(s.displayOrder ?? null);
-          setStartedAt(s.startedAt);
-          setPrivacyConsent(true);
-          setResumed(true);
-        }
-      }
-    } catch {
-      // 저장 데이터가 손상된 경우 처음부터 시작
+    const s = readSavedState();
+    if (s && s.step > 0 && s.step < RESULT_STEP) {
+      setStep(s.step);
+      setAnswers(s.answers ?? {});
+      const raw = s.contact as Partial<SavedContact & { reportConsent?: boolean }>;
+      setContact({
+        ...EMPTY_CONTACT,
+        ...raw,
+        consentRequired: raw.consentRequired ?? raw.reportConsent ?? false,
+        marketingOptIn: raw.marketingOptIn ?? false,
+      });
+      setDisplayOrder(s.displayOrder ?? null);
+      setStartedAt(s.startedAt);
+      setPrivacyConsent(true);
+      setResumed(true);
     }
     restoredRef.current = true;
   }, []);
 
-  // 섹션별 이탈 저장: 상태 변경 시 로컬 저장
+  // 섹션별 이탈 저장: 상태 변경 시 로컬 저장 (버전 태그 포함)
   useEffect(() => {
     if (!restoredRef.current || step === 0 || step >= RESULT_STEP) return;
-    const s: SavedState = { step, answers, startedAt, contact, displayOrder };
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-    } catch {
-      // 저장 불가(시크릿 모드 등)여도 설문 진행은 계속
-    }
+    writeSavedState({ step, answers, startedAt, contact, displayOrder });
   }, [step, answers, startedAt, contact, displayOrder]);
 
   // T-12: C9 보기 순서 확정 시 state·localStorage 동기화
@@ -274,11 +258,7 @@ export default function SurveyApp() {
     setSaveError(res.error);
     setResult(diagnosis);
     setSubmitting(false);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // 무시
-    }
+    clearSavedState();
     goto(RESULT_STEP);
   };
 
