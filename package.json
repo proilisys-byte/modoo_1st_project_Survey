@@ -8,7 +8,8 @@
     "start": "next start",
     "verify:boundaries": "node scripts/verify-boundaries.mjs",
     "verify:scoring": "tsx scripts/verify-scoring-regression.ts",
-    "prebuild": "npm run verify:boundaries && npm run verify:scoring",
+    "verify:top3": "tsx scripts/verify-top3-regression.ts",
+    "prebuild": "npm run verify:boundaries && npm run verify:scoring && npm run verify:top3",
     "smoke:analysis": "python analysis/run_smoke.py --smoke",
     "regenerate:smoke-fixture": "tsx scripts/regenerate-smoke-fixture.ts"
   },

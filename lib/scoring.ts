@@ -5,9 +5,25 @@
 // - C_ATT (주의확인): 도메인 점수·Pain TOP3·pain_scores 모두 제외.
 //   attention_passed(boolean)만 저장 — 빈도 2 선택 여부, 오답이어도 제출 허용.
 // - C9 (TOP3 자가선택): 점수 계산 제외, answers JSON에만 저장.
+//
+// TOP3(computed) 동점 규칙 (burden = freq x sev):
+//   1) burden 내림차순  2) 동점 -> sev 내림차순  3) 동점 -> C1->C8 canonical
+// C_ATT 제외: SCORING_PAIN_IDS(C1~C8) whitelist — C_pain 배열 index/slice 아님.
+// C2/C3/C4 @ 동일 burden(4) 관측 시: C1이 pain_scores에 없을 때(sev 미저장 -> null)
+//   또는 C1 burden < 4일 때 정상. 전원 burden=4이면 canonical TOP3=C1,C2,C3.
 
 import { PAIN_LABELS } from "./questions";
+import {
+  PAIN_QUESTION_IDS,
+} from "./display-order";
 import { resolveGrade, type GradeCode } from "./grade-bands";
+
+/** 채점·TOP3·pain_scores 대상 — C1~C8 key만 (C_ATT/C9 제외, index 아님) */
+export const SCORING_PAIN_IDS = PAIN_QUESTION_IDS;
+
+export function isScoringPainId(id: string): boolean {
+  return (SCORING_PAIN_IDS as readonly string[]).includes(id);
+}
 
 export type DualAnswer = { freq: number; sev: number };
 export type Answers = Record<string, unknown>;
@@ -37,7 +53,6 @@ const SINGLE_GOODNESS: Record<string, Record<string, number>> = {
     b7_v2_7to11: 0.4,
     b7_v2_ge12: 0.15,
     b7_v2_unknown: 0.3,
-    b7_v2_dedicated: 0.2,
   },
   D2: { "1": 0.1, "2": 0.3, "3": 0.6, "4": 1, "5": 0.5 },
 };
@@ -52,7 +67,62 @@ function singleGoodness(answers: Answers, id: string): number | null {
 export function painScore(answers: Answers, id: string): number | null {
   const v = answers[id] as DualAnswer | undefined;
   if (!v || typeof v.freq !== "number" || typeof v.sev !== "number") return null;
-  return v.freq * v.sev; // 1~25
+  return v.freq * v.sev; // 1~25 burden
+}
+
+function painSev(answers: Answers, id: string): number {
+  const v = answers[id] as DualAnswer | undefined;
+  return typeof v?.sev === "number" ? v.sev : -1;
+}
+
+function canonicalPainIndex(id: string): number {
+  const i = (SCORING_PAIN_IDS as readonly string[]).indexOf(id);
+  return i >= 0 ? i : 999;
+}
+
+/** TOP3 burden 정렬 — 동점: sev desc, then C1->C8 */
+export function comparePainBurdenForTop3(
+  aId: string,
+  aBurden: number,
+  bId: string,
+  bBurden: number,
+  answers: Answers
+): number {
+  if (bBurden !== aBurden) return bBurden - aBurden;
+  const sevDiff = painSev(answers, bId) - painSev(answers, aId);
+  if (sevDiff !== 0) return sevDiff;
+  return canonicalPainIndex(aId) - canonicalPainIndex(bId);
+}
+
+export function buildPainScores(answers: Answers): Record<string, number> {
+  const painScores: Record<string, number> = {};
+  for (const id of SCORING_PAIN_IDS) {
+    const p = painScore(answers, id);
+    if (p !== null) painScores[id] = p;
+  }
+  return painScores;
+}
+
+export function buildTop3Risks(answers: Answers): RiskItem[] {
+  const painScores = buildPainScores(answers);
+  return (SCORING_PAIN_IDS as readonly string[])
+    .filter((id) => id in painScores)
+    .sort((aId, bId) =>
+      comparePainBurdenForTop3(
+        aId,
+        painScores[aId],
+        bId,
+        painScores[bId],
+        answers
+      )
+    )
+    .slice(0, 3)
+    .map((id) => ({
+      id,
+      short: PAIN_LABELS[id].short,
+      risk: PAIN_LABELS[id].risk,
+      painScore: painScores[id],
+    }));
 }
 
 /** Pain Score(1~25) → 0(최악)~1(최선) 역산 */
@@ -153,21 +223,8 @@ export function diagnose(answers: Answers): DiagnosisResult {
   const total = Math.round(axes.reduce((a, x) => a + x.score, 0));
   const grade = resolveGrade(total);
 
-  const painScores: Record<string, number> = {};
-  for (const id of Object.keys(PAIN_LABELS)) {
-    const p = painScore(answers, id);
-    if (p !== null) painScores[id] = p;
-  }
-
-  const risks: RiskItem[] = Object.entries(painScores)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([id, p]) => ({
-      id,
-      short: PAIN_LABELS[id].short,
-      risk: PAIN_LABELS[id].risk,
-      painScore: p,
-    }));
+  const painScores = buildPainScores(answers);
+  const risks = buildTop3Risks(answers);
 
   return {
     total,
