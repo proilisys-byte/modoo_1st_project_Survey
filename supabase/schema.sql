@@ -17,7 +17,18 @@ create table if not exists public.survey_responses (
   pain_scores jsonb not null default '{}'::jsonb,
   attention_passed boolean not null default false,
   duration_seconds integer not null default 0,
-  user_agent text
+  user_agent text,
+  survey_version text,
+  started_at timestamptz,
+  submitted_at timestamptz,
+  consent_required boolean not null default false,
+  marketing_opt_in boolean not null default false,
+  email_status text default 'pending',
+  psm_inconsistent boolean not null default false,
+  scoring_config_version text,
+  c_display_order jsonb,
+  benchmark_version text,
+  result_snapshot jsonb
 );
 
 -- 이미 테이블이 있는 경우를 위한 컬럼 추가 (최초 생성 시에는 무시됨)
@@ -25,7 +36,18 @@ alter table public.survey_responses
   add column if not exists submission_uid text,
   add column if not exists grade_code text,
   add column if not exists grade_internal text,
-  add column if not exists job_title text;
+  add column if not exists job_title text,
+  add column if not exists survey_version text,
+  add column if not exists started_at timestamptz,
+  add column if not exists submitted_at timestamptz,
+  add column if not exists consent_required boolean default false,
+  add column if not exists marketing_opt_in boolean default false,
+  add column if not exists email_status text default 'pending',
+  add column if not exists psm_inconsistent boolean default false,
+  add column if not exists scoring_config_version text,
+  add column if not exists c_display_order jsonb,
+  add column if not exists benchmark_version text,
+  add column if not exists result_snapshot jsonb;
 
 alter table public.survey_responses enable row level security;
 

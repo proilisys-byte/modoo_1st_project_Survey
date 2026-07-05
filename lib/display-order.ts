@@ -21,27 +21,17 @@ export type CDisplayOrder = {
   C9_options?: string[];
 };
 
-function shuffle<T>(items: T[]): T[] {
-  const a = [...items];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-/** C1~C8 무작위 + C_ATT를 4~6번째(1-indexed) 임의 위치에 삽입 */
+/** C1~C8 고정 순서 + C_ATT를 5번째(1-indexed) 고정 위치에 삽입 */
 export function buildSectionCPainOrder(): string[] {
-  const pain = shuffle([...PAIN_QUESTION_IDS]);
-  const insertAt = 3 + Math.floor(Math.random() * 3); // 0-indexed 3|4|5 → 4~6번째
+  const pain: string[] = [...PAIN_QUESTION_IDS];
   const order: string[] = [...pain];
-  order.splice(insertAt, 0, ATTENTION_QUESTION_ID);
+  order.splice(4, 0, ATTENTION_QUESTION_ID); // 0-indexed 4 → 5번째 위치 고정
   return order;
 }
 
-/** C9 보기 8개 무작위 순서 (value = C1~C8) */
+/** C9 보기 8개 고정 순서 (value = C1~C8) */
 export function buildC9OptionOrder(): string[] {
-  return shuffle([...PAIN_QUESTION_IDS]);
+  return [...PAIN_QUESTION_IDS];
 }
 
 export function createPainDisplayOrder(): CDisplayOrder {

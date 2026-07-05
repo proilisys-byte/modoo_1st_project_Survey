@@ -14,7 +14,8 @@
     "prebuild": "npm run verify:boundaries && npm run verify:scoring && npm run verify:top3 && npm run verify:submit && npm run verify:storage",
     "smoke:analysis": "python analysis/run_smoke.py --smoke",
     "regenerate:smoke-fixture": "tsx scripts/regenerate-smoke-fixture.ts",
-    "generate:question-map": "tsx scripts/generate-question-map.ts"
+    "generate:question-map": "tsx scripts/generate-question-map.ts",
+    "test:email": "tsx scripts/test-email-send.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
