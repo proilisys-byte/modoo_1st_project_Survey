@@ -43,11 +43,15 @@ export default function PrivacyPage() {
             </h2>
             <ul className="list-disc space-y-1 pl-5">
               <li>
-                <strong>필수:</strong> 이메일 주소, 연락처(전화번호), 직책,
-                설문 응답 내용(직무·산업군·품질 운영 관련 응답 포함)
+                <strong>필수:</strong> 이메일 주소, 직책, 설문 응답 내용(직무·산업군·
+                품질 운영 관련 응답 포함)
               </li>
               <li>
-                <strong>선택:</strong> 회사명
+                <strong>조건부:</strong> 연락처(전화번호) — PoC 적극 검토·전화 자문
+                신청·후속 지원 신청 시에만 수집
+              </li>
+              <li>
+                <strong>선택:</strong> 회사명, 개선 사례·세미나 등 관련 자료 수신 동의
               </li>
               <li>
                 <strong>자동 수집:</strong> 응답 소요 시간, 브라우저 정보(user agent),

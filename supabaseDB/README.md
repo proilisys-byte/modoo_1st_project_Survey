@@ -10,6 +10,7 @@
 | `01_schema.sql` | 테이블 2개 + 인덱스 생성 | 1 |
 | `02_rls_policies.sql` | RLS 활성화 + anon insert 전용 정책 | 2 |
 | `03_verify.sql` | 구축 결과 검증 (테이블·RLS·정책 확인) | 3 |
+| `04_survey_v2_columns.sql` | v2 메타 컬럼 추가 (기존 DB 마이그레이션) | 4 (v2 배포 시) |
 | `99_reset.sql` | ⚠️ 전체 삭제 (재구축용, 데이터 파괴) | 필요 시에만 |
 
 ## 구축 절차
@@ -31,6 +32,9 @@
    - 테이블 2개(`survey_responses`, `cta_requests`) 존재
    - 두 테이블 모두 `rls_enabled = true`
    - 정책 2개(INSERT, anon) 존재
+
+**v2 배포(이미 DB가 있는 경우):** `04_survey_v2_columns.sql`을 추가 실행하세요.
+(`survey_version`, `email_status`, `consent_required` 등 v2 컬럼 추가)
 
 ### 3단계 — 연결 키 확보
 
