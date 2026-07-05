@@ -6,7 +6,13 @@ export type Option = {
   label: string;
   /** 선택 시 자유 기입란 노출 (기타 등) */
   hasText?: boolean;
+  /** 선택 시 같은 문항의 다른 보기를 모두 해제 (T-11) */
+  exclusive?: boolean;
 };
+
+export type ShowIf =
+  | { questionId: string; value: string }
+  | { questionId: string; exceptValues: string[] };
 
 export type SingleQuestion = {
   id: string;
@@ -15,6 +21,7 @@ export type SingleQuestion = {
   note?: string;
   options: Option[];
   required: boolean;
+  showIf?: ShowIf;
 };
 
 export type MultiQuestion = {
@@ -39,6 +46,8 @@ export type DualScaleQuestion = {
   tag?: string;
   /** 주의 확인 문항 여부 — 빈도에서 2를 선택해야 통과 */
   attention?: boolean;
+  /** 업무 영향도 입력 비필수 (T-14, C_ATT) */
+  sevOptional?: boolean;
   required: boolean;
 };
 
@@ -105,10 +114,10 @@ export const SEV_LABELS = [
 
 export const PRICE_BANDS = [
   "10만 원 미만",
-  "10~30만 원",
-  "30~50만 원",
-  "50~100만 원",
-  "100~200만 원",
+  "10만~30만 원 미만",
+  "30만~50만 원 미만",
+  "50만~100만 원 미만",
+  "100만~200만 원 미만",
   "200만 원 이상",
 ];
 
@@ -140,11 +149,12 @@ export const SECTIONS: Section[] = [
         title: "귀사의 상시 근로자 수는?",
         required: true,
         options: [
-          { value: "1", label: "20명 미만" },
-          { value: "2", label: "20~300명" },
-          { value: "3", label: "300~500명" },
-          { value: "4", label: "500~1,000명" },
-          { value: "5", label: "1,000명 이상" },
+          { value: "a2_v2_1", label: "10명 미만" },
+          { value: "a2_v2_2", label: "10~19명" },
+          { value: "a2_v2_3", label: "20~49명" },
+          { value: "a2_v2_4", label: "50~99명" },
+          { value: "a2_v2_5", label: "100~299명" },
+          { value: "a2_v2_6", label: "300명 이상" },
         ],
       },
       {
@@ -160,8 +170,8 @@ export const SECTIONS: Section[] = [
           { value: "5", label: "고객사 자체 인증 (삼성·SK 등 협력사 인증)" },
           { value: "8", label: "ESG 관련 인증·평가" },
           { value: "9", label: "ISO 53001 (ESG 경영시스템)" },
-          { value: "6", label: "없음" },
-          { value: "7", label: "인증 필요", hasText: true },
+          { value: "6", label: "없음", exclusive: true },
+          { value: "7", label: "인증 취득이 필요하다 (검토·준비 중)", hasText: true },
         ],
       },
       {
@@ -270,17 +280,38 @@ export const SECTIONS: Section[] = [
         ],
       },
       {
+        id: "q10_basis",
+        type: "single",
+        title: "위 비율의 기준은?",
+        note: "직전 문항(불량·재작업·폐기 비율)의 분모 기준입니다.",
+        required: true,
+        showIf: { questionId: "B3A", exceptValues: ["6"] },
+        options: [
+          { value: "q10_basis_qty", label: "수량 기준" },
+          { value: "q10_basis_cost", label: "원가(금액) 기준" },
+          { value: "q10_basis_gut", label: "감(感)으로 추정" },
+        ],
+      },
+      {
         id: "B4",
         type: "single",
         title:
           "부적합(불량) 발생 시, 시정조치(CAPA) 보고서 1건을 완결하는 데 평균 얼마나 걸립니까? (원인분석 → 대책수립 → 효과확인까지)",
         required: true,
+        // T-05 v2: b4_v2_* 신규 key (v1 "1"~"5" deprecated). 일수 절단 → lib/boundaries.ts
         options: [
-          { value: "1", label: "1주일 이내" },
-          { value: "2", label: "2~3주" },
-          { value: "3", label: "1개월 이상" },
-          { value: "4", label: "작성은 하지만 효과확인까지 가는 경우가 드물다" },
-          { value: "5", label: "정식 CAPA 절차 자체가 잘 운영되지 않는다" },
+          { value: "b4_v2_lte1w", label: "1주 이내" },
+          { value: "b4_v2_1_2w", label: "1~2주" },
+          { value: "b4_v2_2_4w", label: "2~4주" },
+          { value: "b4_v2_gt4w", label: "1개월(4주) 초과" },
+          {
+            value: "b4_v2_effect_weak",
+            label: "작성은 하지만 효과확인까지 가는 경우가 드물다",
+          },
+          {
+            value: "b4_v2_not_operated",
+            label: "정식 CAPA 절차 자체가 잘 운영되지 않는다",
+          },
         ],
       },
       {
@@ -317,12 +348,12 @@ export const SECTIONS: Section[] = [
           "내부심사 또는 고객사 Audit 준비(문서 정리·기록 보완·증빙 취합)에 담당자 기준 총 몇 일(man-day)이 투입됩니까? (1회 기준)",
         required: true,
         options: [
-          { value: "1", label: "3일 미만" },
-          { value: "2", label: "7일 미만" },
-          { value: "3", label: "12일 미만" },
-          { value: "4", label: "12일 이상" },
-          { value: "5", label: "모름" },
-          { value: "6", label: "전담자 상주근무" },
+          { value: "b7_v2_lt3", label: "3일 미만" },
+          { value: "b7_v2_3to6", label: "3~6일" },
+          { value: "b7_v2_7to11", label: "7~11일" },
+          { value: "b7_v2_ge12", label: "12일 이상" },
+          { value: "b7_v2_unknown", label: "모름" },
+          { value: "b7_v2_dedicated", label: "전담자 상주 (일수 산정 불가)" },
         ],
       },
     ],
@@ -346,7 +377,7 @@ export const SECTIONS: Section[] = [
         id: "C2",
         type: "dualScale",
         title:
-          "담당자가 바뀌면 업무 기준이 함께 바뀌어, 인수인계 후 품질 문제가 생긴다",
+          "담당자가 바뀌면, 작업 기준과 방법이 문서가 아니라 담당자 개인에 따라 달라진다",
         tag: "표준화 부재",
         required: true,
       },
@@ -354,7 +385,7 @@ export const SECTIONS: Section[] = [
         id: "C3",
         type: "dualScale",
         title:
-          "출하검사에서 발견된 문제가 제조·개발 부서로 공유되지 않아 같은 문제가 반복된다",
+          "출하검사에서 발견된 문제가 제조·개발 부서로 공유되지 않는다",
         tag: "부서 단절",
         required: true,
       },
@@ -362,7 +393,7 @@ export const SECTIONS: Section[] = [
         id: "C4",
         type: "dualScale",
         title:
-          "불량이 발생해도 원인이 개발·제조·검사·출하 중 어느 단계에서 생겼는지 추적되지 않아, 원인 규명이 지연되거나 실패한다",
+          "불량이 발생했을 때, 개발·제조·검사·출하 중 어느 단계에서 생겼는지 추적할 수 있는 기록이 없다",
         tag: "이력 추적",
         required: true,
       },
@@ -372,6 +403,7 @@ export const SECTIONS: Section[] = [
         title:
           "이 문항은 응답 품질 확인용입니다. '발생 빈도'에서 2번을 선택해 주십시오.",
         attention: true,
+        sevOptional: true,
         required: true,
       },
       {
@@ -472,7 +504,7 @@ export const SECTIONS: Section[] = [
           { value: "tqm", label: "TQM (전사적 품질경영)" },
           { value: "6sigma", label: "6시그마 (6 Sigma)" },
           { value: "lean", label: "린 생산·개선제안 활동 (Kaizen 등)" },
-          { value: "none", label: "특별한 혁신활동을 하고 있지 않다" },
+          { value: "none", label: "특별한 혁신활동을 하고 있지 않다", exclusive: true },
           { value: "etc", label: "기타", hasText: true },
         ],
       },
@@ -495,22 +527,34 @@ export const SECTIONS: Section[] = [
           },
           { value: "4", label: "지켰는지 확인하는 사람·체계가 없다" },
           { value: "5", label: "경영진이 품질보다 생산량·납기를 우선시한다" },
-          { value: "6", label: "절차 자체는 지켜지고 있다 (해당 없음)" },
+          { value: "6", label: "절차 자체는 지켜지고 있다 (해당 없음)", exclusive: true },
         ],
       },
       {
-        id: "D4",
+        id: "D4_gate",
         type: "single",
-        title:
-          "외부 ISO 컨설팅을 받아본 경험이 있다면, 가장 아쉬웠던 점은 무엇입니까?",
+        title: "외부 ISO 컨설팅을 받아본 적이 있습니까?",
         required: true,
+        options: [
+          { value: "yes", label: "있다" },
+          { value: "no", label: "없다" },
+        ],
+      },
+      {
+        id: "D4_pain",
+        type: "single",
+        title: "가장 아쉬웠던 점은 무엇입니까?",
+        required: true,
+        showIf: { questionId: "D4_gate", value: "yes" },
         options: [
           { value: "1", label: "우리 업종(반도체/제조) 현장을 잘 모른다" },
           { value: "2", label: "문서 양식만 주고 실행 방법은 알려주지 않는다" },
           { value: "3", label: "컨설팅 종료 후 유지가 안 된다" },
           { value: "4", label: "비용 대비 효과가 불분명하다" },
-          { value: "5", label: "아쉬운 점 없이 만족했다" },
-          { value: "6", label: "컨설팅을 받아본 적 없다" },
+          {
+            value: "q29_v2_satisfied",
+            label: "특별히 아쉬운 점은 없었다 (만족)",
+          },
         ],
       },
       {
@@ -601,9 +645,9 @@ export const SECTIONS: Section[] = [
         required: true,
         options: [
           { value: "1", label: "100만 원 미만" },
-          { value: "2", label: "100~300만 원" },
-          { value: "3", label: "300~500만 원" },
-          { value: "4", label: "500~1,000만 원" },
+          { value: "2", label: "100만~300만 원 미만" },
+          { value: "3", label: "300만~500만 원 미만" },
+          { value: "4", label: "500만~1,000만 원 미만" },
           { value: "5", label: "1,000만 원 이상" },
           { value: "6", label: "유료 PoC는 검토하지 않음" },
         ],
