@@ -260,14 +260,17 @@ export default function ResultView({
 
       {/* 리포트 발송 안내 */}
       <div className="rounded-2xl bg-white p-6 text-center shadow-sm border border-slate-100">
+        <p className="text-[15px] font-semibold text-brand-700">
+          끝까지 응답해 주셔서 감사합니다.
+        </p>
         {saved ? (
-          <p className="text-[15px]">
+          <p className="mt-2 text-[15px]">
             상세 진단 리포트가{" "}
             <span className="font-semibold text-brand-700">{email}</span> 으로
-            발송될 예정입니다. 응답해 주셔서 감사합니다.
+            발송될 예정입니다.
           </p>
         ) : (
-          <p className="text-sm text-amber-700">
+          <p className="mt-2 text-sm text-amber-700">
             응답이 서버에 저장되지 않았습니다
             {saveError ? ` — ${saveError}` : ""}. 화면의 진단 결과는 정상이며,
             관리자에게 문의해 주세요.

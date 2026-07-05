@@ -277,7 +277,7 @@ export default function SurveyApp() {
             {resumed ? "이어서 진단하기" : "무료 진단 시작하기 (약 8분)"}
           </button>
           <p className="mt-3 text-center text-xs text-ink-500">
-            총 34문항 · 모바일에서도 편하게 응답하실 수 있습니다
+            총 37문항 · 모바일에서도 편하게 응답하실 수 있습니다
           </p>
         </div>
       </div>
@@ -292,7 +292,11 @@ export default function SurveyApp() {
         <ProgressBar label="마무리 — 진단 리포트 받기" percent={percent} />
         <div className="mx-auto max-w-2xl px-4 py-8">
           <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
-            <h2 className="text-xl font-bold">진단이 완료되었습니다.</h2>
+            <h2 className="text-xl font-bold">끝까지 응답해 주셔서 감사합니다.</h2>
+            <p className="mt-2 text-[15px] text-ink-700">
+              소중한 시간을 내어 주신 답변은 더 나은 진단을 위해 소중히
+              활용하겠습니다.
+            </p>
             <p className="mt-2 text-[15px] text-ink-700">
               귀사의 ISO 실행력 점수와 리스크 TOP 3가 담긴 진단 리포트를
               보내드립니다.
