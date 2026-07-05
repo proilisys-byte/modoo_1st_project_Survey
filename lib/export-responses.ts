@@ -111,36 +111,156 @@ export function rowsToJsonl(records: AnalysisExportRecord[]): string {
   return records.map((r) => JSON.stringify(r)).join("\n") + (records.length ? "\n" : "");
 }
 
+/**
+ * 문항별 고정 컬럼 순서 — CSV 헤더에 사용
+ * dualScale(C1~C8, C_ATT): _freq, _sev 서브컬럼
+ * matrix5(E1): 행별 서브컬럼 (a~f)
+ * priceMatrix(E4): 행별 서브컬럼 (a~d)
+ * multi(A3, C9, D2A, D3, E5): 쉼표 구분 문자열
+ */
+const QUESTION_COLUMNS: string[] = [
+  // 섹션 A
+  "A1", "A2", "A3", "A4", "A5", "A6",
+  // 섹션 B
+  "B1", "B2", "B3", "B3A", "q10_basis", "B4", "B5", "B6", "B7",
+  // 섹션 C (dualScale → _freq, _sev 분리)
+  "C1_freq", "C1_sev",
+  "C2_freq", "C2_sev",
+  "C3_freq", "C3_sev",
+  "C4_freq", "C4_sev",
+  "C_ATT_freq", "C_ATT_sev",
+  "C5_freq", "C5_sev",
+  "C6_freq", "C6_sev",
+  "C7_freq", "C7_sev",
+  "C8_freq", "C8_sev",
+  "C9",
+  // 섹션 D
+  "D1", "D2", "D2A", "D3", "D4_gate", "D4_pain", "D5",
+  // 섹션 E
+  "E1_a", "E1_b", "E1_c", "E1_d", "E1_e", "E1_f",
+  "E2",
+  "E3",
+  "E4_a", "E4_b", "E4_c", "E4_d",
+  "E5", "E5A", "E6",
+];
+
+const DUAL_SCALE_IDS = new Set(["C1", "C2", "C3", "C4", "C_ATT", "C5", "C6", "C7", "C8"]);
+const MATRIX_IDS: Record<string, string[]> = {
+  E1: ["a", "b", "c", "d", "e", "f"],
+  E4: ["a", "b", "c", "d"],
+};
+
+function flattenAnswer(
+  answers: Record<string, unknown>,
+  col: string
+): string {
+  // dualScale 서브컬럼 (예: C1_freq, C_ATT_sev)
+  const dualMatch = col.match(/^(.+)_(freq|sev)$/);
+  if (dualMatch) {
+    const [, qid, sub] = dualMatch;
+    if (DUAL_SCALE_IDS.has(qid)) {
+      const val = answers[qid];
+      if (val && typeof val === "object" && !Array.isArray(val)) {
+        return String((val as Record<string, unknown>)[sub] ?? "");
+      }
+      return "";
+    }
+  }
+
+  // matrix5 / priceMatrix 서브컬럼 (예: E1_a, E4_b)
+  const matrixMatch = col.match(/^(E[14])_([a-f])$/);
+  if (matrixMatch) {
+    const [, qid, rowId] = matrixMatch;
+    const val = answers[qid];
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      return String((val as Record<string, unknown>)[rowId] ?? "");
+    }
+    return "";
+  }
+
+  // 일반 문항
+  const val = answers[col];
+  if (val === undefined || val === null) return "";
+  if (Array.isArray(val)) return val.join("|");
+  if (typeof val === "object") return JSON.stringify(val);
+  return String(val);
+}
+
 export function rowsToCsv(records: AnalysisExportRecord[]): string {
   if (records.length === 0) return "";
-  const flat = records.map((r) => ({
-    response_id: r.response_id,
-    survey_version: r.survey_version,
-    scoring_config_version: r.scoring_config_version,
-    duration_seconds: r.duration_seconds,
-    attention_passed: r.attention_passed,
-    psm_inconsistent: r.psm_inconsistent,
-    score: r.score,
-    grade_code: r.grade_code,
-    d1: r.d1,
-    d2: r.d2,
-    d3: r.d3,
-    d4: r.d4,
-    pain_scores: JSON.stringify(r.pain_scores),
-    answers: JSON.stringify(r.answers),
-    created_at: r.created_at ?? "",
-  }));
-  const headers = Object.keys(flat[0]);
-  const lines = [headers.join(",")];
-  for (const row of flat) {
-    lines.push(
-      headers
-        .map((h) => {
-          const v = String((row as Record<string, unknown>)[h] ?? "");
-          return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v;
-        })
-        .join(",")
+
+  // 메타 컬럼 + 문항별 개별 컬럼 + pain_scores + top3
+  const metaHeaders = [
+    "response_id",
+    "created_at",
+    "survey_version",
+    "scoring_config_version",
+    "duration_seconds",
+    "attention_passed",
+    "psm_inconsistent",
+    "score",
+    "grade_code",
+    "d1",
+    "d2",
+    "d3",
+    "d4",
+    "email_status",
+    "recomputed",
+  ];
+
+  const painHeaders = [
+    "pain_C1", "pain_C2", "pain_C3", "pain_C4",
+    "pain_C5", "pain_C6", "pain_C7", "pain_C8",
+  ];
+
+  const top3Headers = ["top3_1", "top3_2", "top3_3"];
+
+  const allHeaders = [...metaHeaders, ...QUESTION_COLUMNS, ...painHeaders, ...top3Headers];
+
+  const csvEscape = (v: string): string => {
+    if (v.includes(",") || v.includes('"') || v.includes("\n")) {
+      return `"${v.replace(/"/g, '""')}"`;
+    }
+    return v;
+  };
+
+  const lines = ["\uFEFF" + allHeaders.join(",")]; // BOM for Excel 한글 인코딩
+
+  for (const r of records) {
+    const answers = (r.answers ?? {}) as Record<string, unknown>;
+    const painScores = r.pain_scores ?? {};
+    const top3 = r.top3_computed ?? [];
+
+    const metaValues = [
+      r.response_id,
+      r.created_at ?? "",
+      r.survey_version,
+      r.scoring_config_version,
+      String(r.duration_seconds),
+      String(r.attention_passed),
+      String(r.psm_inconsistent),
+      String(r.score),
+      r.grade_code,
+      String(r.d1),
+      String(r.d2),
+      String(r.d3),
+      String(r.d4),
+      r.email_status ?? "",
+      String(r.recomputed),
+    ];
+
+    const questionValues = QUESTION_COLUMNS.map((col) => flattenAnswer(answers, col));
+
+    const painValues = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"].map(
+      (id) => String(painScores[id] ?? "")
     );
+
+    const top3Values = [0, 1, 2].map((i) => (top3[i] ? `${top3[i].id}(${top3[i].burden})` : ""));
+
+    const row = [...metaValues, ...questionValues, ...painValues, ...top3Values].map(csvEscape);
+    lines.push(row.join(","));
   }
+
   return lines.join("\n") + "\n";
 }
+
