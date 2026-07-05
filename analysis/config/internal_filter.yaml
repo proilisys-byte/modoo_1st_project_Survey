@@ -1,0 +1,8 @@
+# §2 s01 — 내부·테스트 응답 벤치마크 풀 제외 (DB 행 삭제 없음, 포렌식 보존)
+# flag_internal=true → in_benchmark_pool=false
+
+# submission_uid 명시 제외 (필요 시 UUID 추가)
+submission_uids: []
+
+# 이 시각(UTC) 이전 created_at 응답 = 내부 테스트 (현재 DB 2건)
+created_at_lte: "2026-07-05T10:36:00+00:00"

@@ -136,10 +136,10 @@ for (const id of DISPLAY_A.C_pain) {
   }
 }
 
-// --- 5) C1 sev 누락 시 C2,C3,C4 (현장 C2/C3/C4 @ 4/4/4 재현) ---
-const C1_MISSING_SEV: Answers = {
+// --- 5) DB 확정 포렌식: C1=1×1, C2~C8=2×2 → TOP3=C2,C3,C4 @ burden 4 ---
+const DB_FORENSIC: Answers = {
   ...BASE_SCALING,
-  C1: { freq: 2 }, // sev 없음 -> painScore null
+  C1: { freq: 1, sev: 1 },
   C2: { freq: 2, sev: 2 },
   C3: { freq: 2, sev: 2 },
   C4: { freq: 2, sev: 2 },
@@ -149,14 +149,18 @@ const C1_MISSING_SEV: Answers = {
   C8: { freq: 2, sev: 2 },
   C_ATT: { freq: 2 },
 };
-const missingSev = buildTop3Risks(C1_MISSING_SEV);
+const forensic = buildTop3Risks(DB_FORENSIC);
 assert(
-  missingSev.map((r) => r.id).join() === "C2,C3,C4",
-  `C1 sev missing -> TOP3 C2,C3,C4 got ${missingSev.map((r) => r.id).join()}`
+  forensic.map((r) => r.id).join() === "C2,C3,C4",
+  `DB forensic TOP3 expected C2,C3,C4 got ${forensic.map((r) => r.id).join()}`
 );
 assert(
-  !("C1" in buildPainScores(C1_MISSING_SEV)),
-  "C1 must be absent from pain_scores when sev missing"
+  forensic.map((r) => r.painScore).join() === "4,4,4",
+  `DB forensic burdens expected 4,4,4 got ${forensic.map((r) => r.painScore).join()}`
+);
+assert(
+  buildPainScores(DB_FORENSIC).C1 === 1,
+  "C1 burden must be 1 in forensic fixture"
 );
 
 // --- 6) C1 sev 필수 검증 (key 기준, C_ATT만 sevOptional) ---
@@ -170,4 +174,4 @@ console.log("OK: TOP3 regression — differential, display_order invariant, tie 
 console.log("OK: submit validation blocks C1 without sev");
 console.log("OK: differential TOP3=C4,C6,C7 burdens=25,20,15");
 console.log("OK: all-tie TOP3=C1,C2,C3");
-console.log("OK: C1 sev missing reproduces C2,C3,C4 @ burden 4");
+console.log("OK: DB forensic C1=1×1 C2~C8=2×2 → TOP3=C2,C3,C4 @ burden 4");

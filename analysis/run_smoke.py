@@ -51,17 +51,13 @@ from score_engine import parity_check_row  # noqa: E402
 
 
 REQUIRED_CONFIGS = [
-
     "scoring_config.yaml",
-
     "segments.yaml",
-
     "grade_bands.yaml",
-
     "harmonize.yaml",
-
     "field_mapping.yaml",
-
+    "internal_filter.yaml",
+    "question_map.yaml",
 ]
 
 

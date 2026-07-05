@@ -9,8 +9,8 @@
 // TOP3(computed) 동점 규칙 (burden = freq x sev):
 //   1) burden 내림차순  2) 동점 -> sev 내림차순  3) 동점 -> C1->C8 canonical
 // C_ATT 제외: SCORING_PAIN_IDS(C1~C8) whitelist — C_pain 배열 index/slice 아님.
-// C2/C3/C4 @ 동일 burden(4) 관측 시: C1이 pain_scores에 없을 때(sev 미저장 -> null)
-//   또는 C1 burden < 4일 때 정상. 전원 burden=4이면 canonical TOP3=C1,C2,C3.
+// DB 확정(2026-07): C1=1×1(burden 1), C2~C8=2×2(burden 4) → TOP3=C2,C3,C4 정상.
+//   (C1 sev 미저장 가설 기각 — submit 구멍·동점 규칙은 예방 조치로 유지)
 
 import { PAIN_LABELS } from "./questions";
 import {

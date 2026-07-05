@@ -1,0 +1,322 @@
+# lib/questions.ts ↔ docs/01 (PRO_ALI_SMART_설문조사_설계서.md)
+# generated: 2026-07-05 — npm run generate:question-map
+version: v2
+source: lib/questions.ts
+
+questions:
+  - key: A1
+    spec_q: Q1
+    section: A
+    type: single
+    required: true
+    title: "귀사의 주력 사업 분야는 무엇입니까?"
+  - key: A2
+    spec_q: Q2
+    section: A
+    type: single
+    required: true
+    title: "귀사의 상시 근로자 수는?"
+  - key: A3
+    spec_q: Q3
+    section: A
+    type: multi
+    required: true
+    title: "귀사가 보유한 인증을 모두 선택해 주십시오."
+  - key: A4
+    spec_q: Q4
+    section: A
+    type: single
+    required: true
+    title: "귀사의 주요 고객은 어떤 형태입니까?"
+  - key: A5
+    spec_q: Q5
+    section: A
+    type: single
+    required: true
+    title: "응답자님의 직무는 무엇입니까?"
+  - key: A6
+    spec_q: Q6
+    section: A
+    type: single
+    required: true
+    title: "응답자님은 품질 관련 의사결정에 어느 정도 관여하십니까?"
+  - key: B1
+    spec_q: Q7
+    section: B
+    type: single
+    required: true
+    title: "지난 6개월간, 고객사 Audit(수검) 또는 ISO 사후심사를 몇 회 받으셨습니까?"
+  - key: B2
+    spec_q: Q8
+    section: B
+    type: single
+    required: true
+    title: "가장 최근의 심사·Audit에서 “문서(절차서)와 실제 업무 방식이 다르다”는 취지의 지적을 받은 적이 있습니까?"
+  - key: B3
+    spec_q: Q9
+    section: B
+    type: single
+    required: true
+    title: "지난 6개월간, 출하검사 불합격 또는 출하 후 고객 클레임(반품·선별·라인스톱 통보 포함)이 몇 건 발생했습니까?"
+  - key: B3A
+    spec_q: Q10
+    section: B
+    type: single
+    required: true
+    title: "지난 6개월간, 생산 과정에서 불량·재작업·폐기로 처리된 비율(생산 수량 또는 제조원가 대비)은 대략 어느 정도입니까?"
+    spec_note: "v2 추가 문항 (설계서 v1 미포함)"
+  - key: q10_basis
+    spec_q: Q10-aux
+    section: B
+    type: single
+    required: true
+    title: "위 비율의 기준은?"
+    spec_note: "v2 추가 문항 (설계서 v1 미포함)"
+  - key: B4
+    spec_q: Q11
+    section: B
+    type: single
+    required: true
+    title: "부적합(불량) 발생 시, 시정조치(CAPA) 보고서 1건을 완결하는 데 평균 얼마나 걸립니까? (원인분석 → 대책수립 → 효과확인까지)"
+  - key: B5
+    spec_q: Q12
+    section: B
+    type: single
+    required: true
+    title: "최근 발생한 부적합 중, 시정조치가 “담당자 교육 실시” 또는 “작업표준 재교육”으로 종결된 비율은 대략 어느 정도입니까?"
+  - key: B6
+    spec_q: Q13
+    section: B
+    type: single
+    required: true
+    title: "동일하거나 유사한 불량이 재발한 경험이 지난 6개월 내 있습니까?"
+  - key: B7
+    spec_q: Q14
+    section: B
+    type: single
+    required: true
+    title: "내부심사 또는 고객사 Audit 준비(문서 정리·기록 보완·증빙 취합)에 담당자 기준 총 몇 일(man-day)이 투입됩니까? (1회 기준)"
+  - key: C1
+    spec_q: Q15
+    section: C
+    type: dualScale
+    required: true
+    title: "절차서·작업표준은 있지만, 납기가 급하면 절차를 생략하고 작업이 진행된다"
+  - key: C2
+    spec_q: Q16
+    section: C
+    type: dualScale
+    required: true
+    title: "담당자가 바뀌면, 작업 기준과 방법이 문서가 아니라 담당자 개인에 따라 달라진다"
+  - key: C3
+    spec_q: Q17
+    section: C
+    type: dualScale
+    required: true
+    title: "출하검사에서 발견된 문제가 제조·개발 부서로 공유되지 않는다"
+  - key: C4
+    spec_q: Q18
+    section: C
+    type: dualScale
+    required: true
+    title: "불량이 발생했을 때, 개발·제조·검사·출하 중 어느 단계에서 생겼는지 추적할 수 있는 기록이 없다"
+  - key: C_ATT
+    spec_q: ATT
+    section: C
+    type: dualScale
+    required: true
+    title: "이 문항은 응답 품질 확인용입니다. '발생 빈도'에서 2번을 선택해 주십시오."
+    spec_note: "주의 확인 문항 — 채점·TOP3 제외, sev 선택"
+  - key: C5
+    spec_q: Q19
+    section: C
+    type: dualScale
+    required: true
+    title: "4M 변경(사람·설비·재료·방법)이 승인·기록 없이 현장에서 먼저 실행된다"
+  - key: C6
+    spec_q: Q20
+    section: C
+    type: dualScale
+    required: true
+    title: "CAPA/8D 보고서 작성이 부담스러워 원인분석보다 문서 마감에 급급하다"
+  - key: C7
+    spec_q: Q21
+    section: C
+    type: dualScale
+    required: true
+    title: "경영진에게 품질 문제의 심각성(손실 비용·거래 리스크)을 숫자로 보여줄 자료가 없다"
+  - key: C8
+    spec_q: Q22
+    section: C
+    type: dualScale
+    required: true
+    title: "고객사 Audit 지적사항에 대한 시정조치가 다음 Audit 전까지 방치된다"
+  - key: C9
+    spec_q: Q23
+    section: C
+    type: multi
+    required: true
+    title: "위 8가지 상황 중, 지금 당장 해결된다면 귀사에 가장 큰 이익이 되는 것 3가지를 골라 주십시오."
+    spec_note: "자가 TOP3 선택 — 채점 제외, answers JSON만 저장"
+  - key: D1
+    spec_q: Q24
+    section: D
+    type: single
+    required: true
+    title: "귀사에서 품질 업무를 전담하는 인원은 몇 명입니까? (겸직 제외)"
+  - key: D2
+    spec_q: Q25
+    section: D
+    type: single
+    required: true
+    title: "ISO 문서·기록 관리는 현재 주로 어떤 도구로 하고 있습니까?"
+  - key: D2A
+    spec_q: Q26
+    section: D
+    type: multi
+    required: true
+    title: "귀사에서 현재 운영 중이거나 도입했던 현장·품질 혁신활동을 모두 선택해 주십시오."
+    spec_note: "v2 추가 문항 (설계서 v1 미포함)"
+  - key: D3
+    spec_q: Q27
+    section: D
+    type: multi
+    required: true
+    title: "ISO 절차가 현장에서 지켜지지 않는 가장 큰 이유는 무엇이라고 보십니까? (2개까지 선택)"
+  - key: D4_gate
+    spec_q: Q28
+    section: D
+    type: single
+    required: true
+    title: "외부 ISO 컨설팅을 받아본 적이 있습니까?"
+  - key: D4_pain
+    spec_q: Q29
+    section: D
+    type: single
+    required: true
+    title: "가장 아쉬웠던 점은 무엇입니까?"
+  - key: D5
+    spec_q: Q30
+    section: D
+    type: text
+    required: false
+    title: "(선택) 품질·ISO 운영과 관련해 “이것 하나만 해결돼도 살겠다” 싶은 업무가 있다면 적어 주십시오."
+  - key: E1
+    spec_q: Q31
+    section: E
+    type: matrix5
+    required: true
+    title: "다음 각 기능이 귀사 업무에 도움이 되는 정도를 평가해 주십시오."
+  - key: E1.a
+    spec_q: Q31a
+    section: E
+    type: matrix5_row
+    required: true
+    title: "ISO 조항 → 우리 회사 맞춤 일일 체크시트 자동 변환"
+    parent_key: E1
+    spec_note: "ISO 조항 → 우리 회사 맞춤 일일 체크시트 자동 변환"
+  - key: E1.b
+    spec_q: Q31b
+    section: E
+    type: matrix5_row
+    required: true
+    title: "부적합 발생 시 CAPA/8D 보고서 초안 자동 작성"
+    parent_key: E1
+    spec_note: "부적합 발생 시 CAPA/8D 보고서 초안 자동 작성"
+  - key: E1.c
+    spec_q: Q31c
+    section: E
+    type: matrix5_row
+    required: true
+    title: "불량 원인의 발생 단계(개발/제조/검사/출하) 추적"
+    parent_key: E1
+    spec_note: "불량 원인의 발생 단계(개발/제조/검사/출하) 추적"
+  - key: E1.d
+    spec_q: Q31d
+    section: E
+    type: matrix5_row
+    required: true
+    title: "부서별 시정조치 담당·기한 할당 및 진행 알림"
+    parent_key: E1
+    spec_note: "부서별 시정조치 담당·기한 할당 및 진행 알림"
+  - key: E1.e
+    spec_q: Q31e
+    section: E
+    type: matrix5_row
+    required: true
+    title: "경영진용 품질 리스크·손실비용 월간 리포트 자동 생성"
+    parent_key: E1
+    spec_note: "v2 추가 — 경영진용 품질 리스크·손실비용 월간 리포트 자동 생성 (설계서 v1 4행 대비 +2)"
+  - key: E1.f
+    spec_q: Q31f
+    section: E
+    type: matrix5_row
+    required: true
+    title: "내부심사·고객 Audit 대비 문서·기록 자동 점검"
+    parent_key: E1
+    spec_note: "v2 추가 — 내부심사·고객 Audit 대비 문서·기록 자동 점검 (설계서 v1 4행 대비 +2)"
+  - key: E2
+    spec_q: Q32
+    section: E
+    type: single
+    required: true
+    title: "이런 서비스를 도입한다면, 도입 결정까지 가장 큰 장애물은 무엇이겠습니까?"
+  - key: E3
+    spec_q: Q33
+    section: E
+    type: single
+    required: true
+    title: "도입 전 4~6주간 실제 데이터로 효과를 검증하는 유료 시범 적용(PoC)이 있다면, 참여를 검토할 의향이 있습니까?"
+  - key: E4
+    spec_q: Q34
+    section: E
+    type: priceMatrix
+    required: true
+    title: "(가격 수용도 — 월 구독 기준) 위 서비스의 월 이용료에 대해 여쭙습니다."
+  - key: E4.a
+    spec_q: Q34a
+    section: E
+    type: priceMatrix_row
+    required: true
+    title: "이 금액이면 너무 싸서 품질이 의심된다"
+    parent_key: E4
+  - key: E4.b
+    spec_q: Q34b
+    section: E
+    type: priceMatrix_row
+    required: true
+    title: "이 금액이면 합리적이어서 도입을 긍정 검토하겠다"
+    parent_key: E4
+  - key: E4.c
+    spec_q: Q34c
+    section: E
+    type: priceMatrix_row
+    required: true
+    title: "이 금액부터는 비싸다고 느끼지만 효과가 확실하면 고려하겠다"
+    parent_key: E4
+  - key: E4.d
+    spec_q: Q34d
+    section: E
+    type: priceMatrix_row
+    required: true
+    title: "이 금액부터는 너무 비싸서 검토 대상에서 제외하겠다"
+    parent_key: E4
+  - key: E5
+    spec_q: Q35
+    section: E
+    type: single
+    required: true
+    title: "4~6주 유료 PoC 비용으로 수용 가능한 범위는?"
+  - key: E5A
+    spec_q: Q35-aux
+    section: E
+    type: text
+    required: false
+    title: "(선택) 지금 우리 회사에서 가장 답답하고 가려운 부분, 꼭 해결하고 싶은 문제가 있다면 무엇이든 편하게 적어 주십시오."
+    spec_note: "v2 추가 문항 (설계서 v1 미포함)"
+  - key: E6
+    spec_q: Q36
+    section: E
+    type: single
+    required: true
+    title: "진단 리포트와 함께, 33년 경력 반도체 품질 전문가의 1회 무료 전화 자문(20분)을 신청하시겠습니까?"
