@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { CDisplayOrder } from "./display-order";
 
 let client: SupabaseClient | null | undefined;
 
@@ -11,13 +12,15 @@ export function getSupabase(): SupabaseClient | null {
   return client;
 }
 
+export type EmailStatus = "pending" | "sent" | "failed";
+
 export type SubmissionPayload = {
   submission_uid: string;
   answers: Record<string, unknown>;
   email: string;
   company: string | null;
   job_title: string;
-  phone: string;
+  phone: string | null;
   score: number;
   grade: string;
   grade_code: string;
@@ -26,6 +29,17 @@ export type SubmissionPayload = {
   attention_passed: boolean;
   duration_seconds: number;
   user_agent: string;
+  /** T-17 v2 메타 */
+  survey_version: string;
+  started_at: string | null;
+  submitted_at: string;
+  consent_required: boolean;
+  /** false면 마케팅 발송 대상에서 제외 */
+  marketing_opt_in: boolean;
+  email_status: EmailStatus;
+  psm_inconsistent: boolean;
+  scoring_config_version: string;
+  c_display_order: CDisplayOrder | null;
 };
 
 /** 응답 저장 — 성공 여부를 반환하고 실패해도 UI 흐름은 막지 않는다 */

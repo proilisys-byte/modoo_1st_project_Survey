@@ -16,6 +16,8 @@ type Props = {
   answers: Record<string, unknown>;
   showError: boolean;
   onAnswer: (id: string, value: unknown) => void;
+  /** T-12: C9 등 보기 무작위 순서 */
+  shuffledOptions?: Option[];
 };
 
 export function isAnswered(
@@ -40,7 +42,9 @@ export function isAnswered(
     }
     case "dualScale": {
       const d = v as DualAnswer | undefined;
-      return typeof d?.freq === "number" && typeof d?.sev === "number";
+      if (typeof d?.freq !== "number") return false;
+      if ("sevOptional" in q && q.sevOptional) return true;
+      return typeof d.sev === "number";
     }
     case "matrix5":
     case "priceMatrix": {
@@ -81,6 +85,7 @@ export default function QuestionBlock({
   answers,
   showError,
   onAnswer,
+  shuffledOptions,
 }: Props) {
   const unanswered = showError && q.required && !isAnswered(q, answers);
   const [limitNotice, setLimitNotice] = useState(false);
@@ -132,18 +137,30 @@ export default function QuestionBlock({
 
       {q.type === "multi" && (
         <div className="space-y-2">
+          {(() => {
+            const options = shuffledOptions ?? q.options;
+            return (
+              <>
+          {q.exact && (
+            <p className="text-xs font-medium text-brand-700 -mt-2 mb-2">
+              {((answers[q.id] as string[]) ?? []).length}/{q.exact} 선택됨
+            </p>
+          )}
           <p className="text-xs text-ink-500 -mt-2 mb-2">
             {q.exact
-              ? `${q.exact}개를 선택해 주세요`
+              ? `정확히 ${q.exact}개를 선택해 주세요`
               : q.max
                 ? `최대 ${q.max}개까지 선택 가능`
                 : "해당하는 항목을 모두 선택해 주세요"}
           </p>
-          {q.options.map((op) => {
+          {options.map((op) => {
             const list = (answers[q.id] as string[]) ?? [];
             const selected = list.includes(op.value);
             const limit = q.exact ?? q.max;
-            const exclusive = op.value === "none";
+            const exclusive = op.exclusive === true;
+            const exclusiveValues = q.options
+              .filter((o) => o.exclusive)
+              .map((o) => o.value);
             return (
               <div key={op.value}>
                 <OptionCard
@@ -158,13 +175,12 @@ export default function QuestionBlock({
                       setLimitNotice(false);
                       return;
                     }
-                    // "없음/해당없음" 선택 시 나머지 해제 (배타 선택)
                     if (exclusive) {
                       onAnswer(q.id, [op.value]);
                       setLimitNotice(false);
                       return;
                     }
-                    const base = list.filter((v) => v !== "none");
+                    const base = list.filter((v) => !exclusiveValues.includes(v));
                     if (limit !== undefined && base.length >= limit) {
                       setLimitNotice(true);
                       return;
@@ -189,15 +205,23 @@ export default function QuestionBlock({
           {limitNotice && (q.exact ?? q.max) !== undefined && (
             <p className="mt-1 text-sm font-medium text-amber-600">
               {q.exact
-                ? `${q.exact}개까지만 선택할 수 있습니다. 변경하시려면 선택한 항목을 먼저 해제해 주세요.`
+                ? `정확히 ${q.exact}개를 선택해야 다음으로 진행할 수 있습니다.`
                 : `최대 ${q.max}개까지만 선택할 수 있습니다. 변경하시려면 선택한 항목을 먼저 해제해 주세요.`}
             </p>
           )}
+              </>
+            );
+          })()}
         </div>
       )}
 
       {q.type === "dualScale" && (
         <div className="space-y-4">
+          {"attention" in q && q.attention && (
+            <p className="text-xs text-ink-500 -mt-2">
+              업무 영향도는 선택하지 않아도 됩니다.
+            </p>
+          )}
           {"tag" in q && q.tag && (
             <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-ink-500 -mt-2">
               {q.tag}
@@ -218,7 +242,14 @@ export default function QuestionBlock({
             />
           </div>
           <div>
-            <p className="mb-2 text-sm font-semibold text-ink-700">업무 영향도</p>
+            <p className="mb-2 text-sm font-semibold text-ink-700">
+              업무 영향도
+              {"sevOptional" in q && q.sevOptional && (
+                <span className="ml-1 text-xs font-normal text-ink-500">
+                  (선택)
+                </span>
+              )}
+            </p>
             <ScaleRow
               name={`${q.id} 업무 영향도`}
               labels={SEV_LABELS}

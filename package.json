@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "verify:boundaries": "node scripts/verify-boundaries.mjs",
+    "verify:scoring": "npx tsx scripts/verify-scoring-regression.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

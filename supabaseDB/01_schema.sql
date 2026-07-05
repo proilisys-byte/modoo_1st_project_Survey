@@ -21,7 +21,19 @@ create table if not exists public.survey_responses (
   pain_scores jsonb not null default '{}'::jsonb,  -- C1~C8 Pain Score (1~25)
   attention_passed boolean not null default false, -- 주의 확인 문항 통과 여부
   duration_seconds integer not null default 0,
-  user_agent text
+  user_agent text,
+  -- v2 (T-17) 분석·메타 필드
+  survey_version text,
+  started_at timestamptz,
+  submitted_at timestamptz,
+  consent_required boolean,
+  marketing_opt_in boolean,
+  email_status text,                 -- pending | sent | failed
+  email_error text,                  -- 서버 전용 (관리자 API)
+  psm_inconsistent boolean default false,
+  scoring_config_version text,
+  benchmark_version text,
+  c_display_order jsonb
 );
 
 -- 기존 테이블에 컬럼이 없던 경우를 위한 보강 (최초 생성 시 무시됨)
