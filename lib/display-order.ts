@@ -34,7 +34,7 @@ function shuffle<T>(items: T[]): T[] {
 export function buildSectionCPainOrder(): string[] {
   const pain = shuffle([...PAIN_QUESTION_IDS]);
   const insertAt = 3 + Math.floor(Math.random() * 3); // 0-indexed 3|4|5 → 4~6번째
-  const order = [...pain];
+  const order: string[] = [...pain];
   order.splice(insertAt, 0, ATTENTION_QUESTION_ID);
   return order;
 }

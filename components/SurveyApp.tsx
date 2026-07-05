@@ -289,7 +289,6 @@ export default function SurveyApp() {
         saveError={saveError}
         emailSent={emailSent}
         submissionUid={submissionUid}
-        company={contact.company.trim() || null}
         onResendReport={async () =>
           resendReportEmail(submissionUid, {
             to: contact.email.trim(),

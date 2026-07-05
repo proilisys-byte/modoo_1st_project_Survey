@@ -18,6 +18,8 @@ import {
 } from "./display-order";
 import { resolveGrade, type GradeCode } from "./grade-bands";
 
+export type { GradeCode };
+
 /** 채점·TOP3·pain_scores 대상 — C1~C8 key만 (C_ATT/C9 제외, index 아님) */
 export const SCORING_PAIN_IDS = PAIN_QUESTION_IDS;
 
@@ -146,8 +148,6 @@ export type RiskItem = {
   risk: string;
   painScore: number;
 };
-
-export type GradeCode = import("./grade-bands").GradeCode;
 
 export type Grade = {
   min: number;

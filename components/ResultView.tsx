@@ -295,14 +295,12 @@ export default function ResultView({
                 <button
                   type="button"
                   onClick={handleResend}
-                  disabled={resendState === "loading" || resendState === "done"}
+                  disabled={resendState === "loading"}
                   className="mt-4 rounded-lg border-2 border-brand-600 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-60"
                 >
                   {resendState === "loading"
                     ? "재발송 중..."
-                    : resendState === "done"
-                      ? "재발송 완료"
-                      : "이메일이 오지 않았나요? 재발송"}
+                    : "이메일이 오지 않았나요? 재발송"}
                 </button>
               )}
               {resendState === "limited" && (
