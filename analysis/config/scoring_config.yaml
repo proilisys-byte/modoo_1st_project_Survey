@@ -1,0 +1,102 @@
+# lib/scoring.ts diagnose() 에서 export (2026-07-05)
+# 문서 추정표(Q15/Q16 등)가 아닌 실제 코드 기준
+version: v1
+source: lib/scoring.ts
+
+domains:
+  d1:
+    name: 표준 실행력
+    max: 30
+    weight: 30
+    items:
+      - { question_key: B2, type: single, direction: higher_is_better }
+      - { question_key: C1, type: pain, direction: lower_is_better }
+      - { question_key: C2, type: pain, direction: lower_is_better }
+      - { question_key: C5, type: pain, direction: lower_is_better }
+  d2:
+    name: 부적합·CAPA 성숙도
+    max: 30
+    weight: 30
+    items:
+      - { question_key: B4, type: single, direction: higher_is_better }
+      - { question_key: B5, type: single, direction: higher_is_better }
+      - { question_key: B6, type: single, direction: lower_is_better }
+      - { question_key: C4, type: pain, direction: lower_is_better }
+      - { question_key: C6, type: pain, direction: lower_is_better }
+  d3:
+    name: 부서 협업·환류
+    max: 20
+    weight: 20
+    items:
+      - { question_key: C3, type: pain, direction: lower_is_better }
+      - { question_key: C8, type: pain, direction: lower_is_better }
+  d4:
+    name: 경영 가시성·데이터 관리
+    max: 20
+    weight: 20
+    items:
+      - { question_key: B3, type: single, direction: higher_is_better }
+      - { question_key: B7, type: single, direction: higher_is_better }
+      - { question_key: C7, type: pain, direction: lower_is_better }
+      - { question_key: D2, type: single, direction: higher_is_better }
+
+# axisScore: 유효 goodness 평균 × weight; 전부 null이면 weight × 0.5
+axis_missing_default: 0.5
+
+single_goodness:
+  B2:
+    "1": 0
+    "2": 0.35
+    "3": 1
+    "4": 0.5
+  B4:
+    b4_v2_lte1w: 1
+    b4_v2_1_2w: 0.75
+    b4_v2_2_4w: 0.5
+    b4_v2_gt4w: 0.35
+    b4_v2_effect_weak: 0.2
+    b4_v2_not_operated: 0
+  B5:
+    "1": 1
+    "2": 0.75
+    "3": 0.5
+    "4": 0.25
+    "5": 0
+    "6": 0.4
+  B6:
+    "1": 1
+    "2": 0.6
+    "3": 0.2
+    "4": 0
+  B3:
+    "1": 1
+    "2": 0.75
+    "3": 0.4
+    "4": 0.15
+    "5": 0
+    "6": 0.5
+  B7:
+    b7_v2_lt3: 1
+    b7_v2_3to6: 0.7
+    b7_v2_7to11: 0.4
+    b7_v2_ge12: 0.15
+    b7_v2_unknown: 0.3
+  D2:
+    "1": 0.1
+    "2": 0.3
+    "3": 0.6
+    "4": 1
+    "5": 0.5
+
+excluded_from_scoring:
+  - C_ATT
+  - C9
+
+burden:
+  formula: freq_times_impact
+  max: 25
+  top3_rule: sort_desc_take_3
+
+missing_code: -9
+
+harmonize_ref: harmonize.yaml

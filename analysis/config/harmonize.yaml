@@ -1,0 +1,46 @@
+# v1·v2 혼합 분석에는 조대(coarse) 변수만 사용 — lib/harmonize.ts 와 동기화
+
+b4_duration_coarse:
+  v1:
+    "1": lte1w
+    "2": gt1w_lte4w
+    "3": gt4w
+    "4": status_effect_weak
+    "5": status_not_operated
+  v2:
+    b4_v2_lte1w: lte1w
+    b4_v2_1_2w: gt1w_lte4w
+    b4_v2_2_4w: gt1w_lte4w
+    b4_v2_gt4w: gt4w
+    b4_v2_effect_weak: status_effect_weak
+    b4_v2_not_operated: status_not_operated
+
+b7_man_day_coarse:
+  v1:
+    "1": lt12
+    "2": lt12
+    "3": lt12
+    "4": ge12
+    "5": unknown
+    "6": unknown
+  v2:
+    b7_v2_lt3: lt12
+    b7_v2_3to6: lt12
+    b7_v2_7to11: lt12
+    b7_v2_ge12: ge12
+    b7_v2_unknown: unknown
+
+a2_size_tier:
+  v1:
+    "1": small
+    "2": mid
+    "3": large
+    "4": large
+    "5": large
+  v2:
+    a2_v2_1: small
+    a2_v2_2: small
+    a2_v2_3: mid
+    a2_v2_4: mid
+    a2_v2_5: mid
+    a2_v2_6: large

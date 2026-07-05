@@ -1,0 +1,20 @@
+# §4.2 — 벤치마크 세그먼트 계층
+industry4:
+  semi_direct: [반도체 장비 제조, 반도체 부품·소재 제조]
+  semi_supplier: [반도체 장비·부품 가공/조립 협력 (1~3차)]
+  mobility: [자동차 부품, 이차전지(배터리) 관련]
+  general: [전자·기계 일반, 기타 제조]
+
+size3:
+  small: "<20"
+  mid: "20~299"
+  large: "300+"
+
+levels:
+  L3: industry4 x size3
+  L2: industry4
+  L1: 전체 제조업
+
+gates:
+  percentile_min_n: 30
+  median_min_n: 10

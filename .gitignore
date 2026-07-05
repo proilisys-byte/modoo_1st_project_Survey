@@ -6,3 +6,9 @@ out/
 .env*.local
 *.tsbuildinfo
 next-env.d.ts
+
+# analysis generated artifacts
+analysis/data/processed/*.csv
+analysis/outputs/**/*
+!analysis/data/processed/.gitkeep
+analysis/src/__pycache__/
