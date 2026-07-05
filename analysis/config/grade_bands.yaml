@@ -1,0 +1,11 @@
+# grade_bands — config/grade_bands.json 과 동기화 (T-16)
+version: v1
+bands:
+  - min: 80
+    code: A
+  - min: 60
+    code: B
+  - min: 40
+    code: C
+  - min: 0
+    code: D

@@ -4,7 +4,6 @@ import { useState } from "react";
 import type { DiagnosisResult } from "@/lib/scoring";
 import type { CtaType } from "@/lib/supabase";
 import { WaferMark } from "./ui";
-
 type CtaState = "idle" | "loading" | "done" | "error";
 
 const CTA_ITEMS: {
@@ -40,7 +39,8 @@ export default function ResultView({
   saved,
   saveError,
   emailSent,
-  emailError,
+  submissionUid,
+  onResendReport,
   onCtaRequest,
 }: {
   result: DiagnosisResult;
@@ -49,9 +49,9 @@ export default function ResultView({
   saved: boolean;
   saveError?: string;
   emailSent: boolean;
-  emailError?: string;
-  onCtaRequest: (
-    ctaType: CtaType,
+  submissionUid: string;
+  onResendReport: () => Promise<{ sent: boolean; rateLimited?: boolean }>;
+  onCtaRequest: (    ctaType: CtaType,
     phone: string
   ) => Promise<{ saved: boolean; error?: string }>;
 }) {
@@ -62,7 +62,17 @@ export default function ResultView({
     poc: "idle",
   });
   const [ctaError, setCtaError] = useState<string | undefined>();
+  const [resendState, setResendState] = useState<
+    "idle" | "loading" | "done" | "limited"
+  >("idle");
 
+  const handleResend = async () => {
+    setResendState("loading");
+    const res = await onResendReport();
+    if (res.rateLimited) setResendState("limited");
+    else if (res.sent) setResendState("done");
+    else setResendState("idle");
+  };
   const requestCta = async (type: CtaType) => {
     setCtaState((s) => ({ ...s, [type]: "loading" }));
     setCtaError(undefined);
@@ -268,21 +278,41 @@ export default function ResultView({
           끝까지 응답해 주셔서 감사합니다.
         </p>
         {saved ? (
-          emailSent ? (
+          emailSent || resendState === "done" ? (
             <p className="mt-2 text-[15px]">
               상세 진단 리포트가{" "}
               <span className="font-semibold text-brand-700">{email}</span> 으로
               발송되었습니다. 메일함(스팸함 포함)을 확인해 주세요.
             </p>
           ) : (
-            <p className="mt-2 text-sm text-amber-700">
-              응답은 저장되었습니다. 진단 리포트 이메일 발송에 실패했습니다
-              {emailError ? ` — ${emailError}` : ""}. 화면의 결과는 정상이며,
-              관리자에게 문의해 주세요.
-            </p>
+            <>
+              <p className="mt-2 text-sm text-amber-700">
+                리포트 발송이 지연되고 있습니다. 응답은 안전하게 저장되었으며,
+                준비되는 대로 입력하신 이메일로 보내드립니다. 화면의 진단 결과는
+                정상입니다.
+              </p>
+              {submissionUid && (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendState === "loading" || resendState === "done"}
+                  className="mt-4 rounded-lg border-2 border-brand-600 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-60"
+                >
+                  {resendState === "loading"
+                    ? "재발송 중..."
+                    : resendState === "done"
+                      ? "재발송 완료"
+                      : "이메일이 오지 않았나요? 재발송"}
+                </button>
+              )}
+              {resendState === "limited" && (
+                <p className="mt-2 text-xs text-amber-700">
+                  15분에 한 번만 재발송할 수 있습니다.
+                </p>
+              )}
+            </>
           )
-        ) : (
-          <p className="mt-2 text-sm text-amber-700">
+        ) : (          <p className="mt-2 text-sm text-amber-700">
             응답이 서버에 저장되지 않았습니다
             {saveError ? ` — ${saveError}` : ""}. 화면의 진단 결과는 정상이며,
             관리자에게 문의해 주세요.

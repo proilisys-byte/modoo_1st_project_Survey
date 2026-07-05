@@ -1,7 +1,13 @@
 // 설계서 10절 스코어링 로직
 // 10.1 ISO 실행력 점수(100점) · 10.2 Pain Score · 10.4 등급→액션플랜
+//
+// T-14: 채점·벤치마크 제외 문항
+// - C_ATT (주의확인): 도메인 점수·Pain TOP3·pain_scores 모두 제외.
+//   attention_passed(boolean)만 저장 — 빈도 2 선택 여부, 오답이어도 제출 허용.
+// - C9 (TOP3 자가선택): 점수 계산 제외, answers JSON에만 저장.
 
 import { PAIN_LABELS } from "./questions";
+import { resolveGrade, type GradeCode } from "./grade-bands";
 
 export type DualAnswer = { freq: number; sev: number };
 export type Answers = Record<string, unknown>;
@@ -11,12 +17,28 @@ const SINGLE_GOODNESS: Record<string, Record<string, number>> = {
   // 축 1. 표준 실행력
   B2: { "1": 0, "2": 0.35, "3": 1, "4": 0.5 },
   // 축 2. 부적합·CAPA 성숙도
-  B4: { "1": 1, "2": 0.7, "3": 0.4, "4": 0.2, "5": 0 },
+  // v2 상호배타 기간 구간 (v1 key "1"~"3" deprecated — lib/boundaries.ts 7/14/28일 절단)
+  B4: {
+    b4_v2_lte1w: 1,
+    b4_v2_1_2w: 0.75,
+    b4_v2_2_4w: 0.5,
+    b4_v2_gt4w: 0.35,
+    b4_v2_effect_weak: 0.2,
+    b4_v2_not_operated: 0,
+  },
   B5: { "1": 1, "2": 0.75, "3": 0.5, "4": 0.25, "5": 0, "6": 0.4 },
   B6: { "1": 1, "2": 0.6, "3": 0.2, "4": 0 },
   // 축 4. 경영 가시성·데이터 관리
   B3: { "1": 1, "2": 0.75, "3": 0.4, "4": 0.15, "5": 0, "6": 0.5 },
-  B7: { "1": 1, "2": 0.7, "3": 0.4, "4": 0.15, "5": 0.3, "6": 0.2 },
+  // v2 상호배타 구간 (v1 key 1~6 deprecated — harmonize.ts 참조)
+  B7: {
+    b7_v2_lt3: 1,
+    b7_v2_3to6: 0.7,
+    b7_v2_7to11: 0.4,
+    b7_v2_ge12: 0.15,
+    b7_v2_unknown: 0.3,
+    b7_v2_dedicated: 0.2,
+  },
   D2: { "1": 0.1, "2": 0.3, "3": 0.6, "4": 1, "5": 0.5 },
 };
 
@@ -55,49 +77,15 @@ export type RiskItem = {
   painScore: number;
 };
 
-export type GradeCode = "A" | "B" | "C" | "D";
+export type GradeCode = import("./grade-bands").GradeCode;
 
 export type Grade = {
   min: number;
-  /** 관리자·분석용 내부 등급 코드 (설계서 10.4 등급 순서) */
   code: GradeCode;
-  /** 관리자·리포트용 정식 등급명 (설계서 10.4) */
   internalName: string;
-  /** 응답자 화면에 보여줄 친근한 문구 */
   name: string;
   plan: string;
 };
-
-export const GRADES: Grade[] = [
-  {
-    min: 80,
-    code: "A",
-    internalName: "AI 운영혁신 준비 기업",
-    name: "잘 갖춰진 편이에요",
-    plan: "품질 관리의 기본 틀이 잘 잡혀 있습니다. 이제 종이나 엑셀 대신 데이터로 품질을 실시간 관리하는 단계로 넘어가 보시길 권합니다.",
-  },
-  {
-    min: 60,
-    code: "B",
-    internalName: "실행 체계 보완 필요 기업",
-    name: "조금만 보완하면 돼요",
-    plan: "기본은 갖췄지만 몇몇 영역이 약합니다. 위 \u2018영역별 현황\u2019에서 막대가 가장 짧은 영역부터 4주 정도 집중해 개선해 보시길 권합니다.",
-  },
-  {
-    min: 40,
-    code: "C",
-    internalName: "ISO 실행 갭 고위험 기업",
-    name: "실행이 서류를 못 따라가고 있어요",
-    plan: "규정은 있지만 현장 실행이 따라가지 못하는 상태입니다. 매일 점검하는 체크시트와 불량 조치 이력 관리부터 시작하시길 권합니다.",
-  },
-  {
-    min: 0,
-    code: "D",
-    internalName: "고객 Audit 리스크 집중관리 기업",
-    name: "지금 바로 챙겨야 해요",
-    plan: "지금 상태로는 고객사 심사나 거래 유지에 문제가 생길 수 있습니다. 전문가 상담을 통해 급한 개선 항목부터 함께 정리해 보시길 권합니다.",
-  },
-];
 
 export type DiagnosisResult = {
   total: number;
@@ -163,7 +151,7 @@ export function diagnose(answers: Answers): DiagnosisResult {
   ];
 
   const total = Math.round(axes.reduce((a, x) => a + x.score, 0));
-  const grade = GRADES.find((g) => total >= g.min) ?? GRADES[GRADES.length - 1];
+  const grade = resolveGrade(total);
 
   const painScores: Record<string, number> = {};
   for (const id of Object.keys(PAIN_LABELS)) {
