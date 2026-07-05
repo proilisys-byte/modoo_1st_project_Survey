@@ -201,6 +201,7 @@ def main() -> int:
     benchmark = s03.run(df, validation)
 
     pct_keys = list(benchmark["segments"]["L1|all"]["total"].keys())
+    median_min_n = int(benchmark.get("median_min_n", 10))
 
     if validation["n_pool"] < 30 and "percentile" in pct_keys:
 
@@ -208,7 +209,22 @@ def main() -> int:
 
         return 1
 
-    print(f"OK: s03 benchmark - n_pool={benchmark['n_pool']} keys={pct_keys} -> {benchmark['_path']}")
+    if benchmark["n_pool"] < median_min_n:
+        if "median" in pct_keys:
+            print(f"FAIL: median present in benchmark when n_pool < {median_min_n}")
+            return 1
+        if not benchmark["segments"]["L1|all"]["total"].get("insufficient_n"):
+            print(f"FAIL: insufficient_n not set when n_pool < {median_min_n}")
+            return 1
+    elif "median" not in pct_keys:
+        print(f"FAIL: median missing when n_pool >= {median_min_n}")
+        return 1
+
+    print(
+        f"OK: s03 benchmark - n_pool={benchmark['n_pool']} "
+        f"median_included={benchmark.get('median_included')} keys={pct_keys} "
+        f"-> {benchmark['_path']}"
+    )
 
 
 

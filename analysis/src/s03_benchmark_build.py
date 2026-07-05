@@ -15,10 +15,15 @@ def run(df: pd.DataFrame, validation: dict) -> dict:
     pool = df[df["in_benchmark_pool"]]
     n = len(pool)
     percentile_min_n = int(segments.get("gates", {}).get("percentile_min_n", 30))
+    median_min_n = int(segments.get("gates", {}).get("median_min_n", 10))
     include_percentile = n >= percentile_min_n
+    include_median = n >= median_min_n
 
-    total_stats: dict = {"median": float(pool["score"].median()) if n else None}
-    # percentile은 n >= percentile_min_n 일 때만 total_stats에 추가 (전체 파이프라인)
+    total_stats: dict = {}
+    if include_median:
+        total_stats["median"] = float(pool["score"].median()) if n else None
+    else:
+        total_stats["insufficient_n"] = True
 
     benchmark = {
         "version": f"v{date.today().strftime('%Y%m%d')}",
@@ -26,6 +31,8 @@ def run(df: pd.DataFrame, validation: dict) -> dict:
         "n_pool": n,
         "provisional": validation.get("provisional", False),
         "percentile_included": include_percentile,
+        "median_included": include_median,
+        "median_min_n": median_min_n,
         "segments": {"L1|all": {"n": n, "total": total_stats}},
     }
 
