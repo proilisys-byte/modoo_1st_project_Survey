@@ -8,6 +8,7 @@ create table if not exists public.survey_responses (
   answers jsonb not null,
   email text not null,
   company text,
+  job_title text,
   phone text,
   score integer not null,
   grade text not null,               -- 화면 표시용 친근한 문구
@@ -23,7 +24,8 @@ create table if not exists public.survey_responses (
 alter table public.survey_responses
   add column if not exists submission_uid text,
   add column if not exists grade_code text,
-  add column if not exists grade_internal text;
+  add column if not exists grade_internal text,
+  add column if not exists job_title text;
 
 alter table public.survey_responses enable row level security;
 

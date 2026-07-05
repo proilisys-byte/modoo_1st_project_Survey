@@ -26,6 +26,7 @@ type SavedState = {
 type Contact = {
   email: string;
   company: string;
+  jobTitle: string;
   phone: string;
   reportConsent: boolean;
 };
@@ -33,6 +34,7 @@ type Contact = {
 const EMPTY_CONTACT: Contact = {
   email: "",
   company: "",
+  jobTitle: "",
   phone: "",
   reportConsent: false,
 };
@@ -63,7 +65,7 @@ export default function SurveyApp() {
         if (s.step > 0 && s.step < RESULT_STEP) {
           setStep(s.step);
           setAnswers(s.answers ?? {});
-          setContact(s.contact ?? EMPTY_CONTACT);
+          setContact({ ...EMPTY_CONTACT, ...s.contact });
           setStartedAt(s.startedAt);
           setPrivacyConsent(true);
           setResumed(true);
@@ -120,13 +122,11 @@ export default function SurveyApp() {
     goto(step + 1);
   };
 
-  const phoneRequired =
-    answers["E3"] === "1" || answers["E3"] === "2" || answers["E6"] === "1";
-
   const contactValid =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim()) &&
     contact.reportConsent &&
-    (!phoneRequired || contact.phone.trim().length >= 9);
+    contact.jobTitle.trim().length >= 1 &&
+    contact.phone.trim().length >= 9;
 
   const submit = async () => {
     if (!contactValid) {
@@ -148,7 +148,8 @@ export default function SurveyApp() {
       answers,
       email: contact.email.trim(),
       company: contact.company.trim() || null,
-      phone: contact.phone.trim() || null,
+      job_title: contact.jobTitle.trim(),
+      phone: contact.phone.trim(),
       score: diagnosis.total,
       grade: diagnosis.gradeName,
       grade_code: diagnosis.gradeCode,
@@ -272,7 +273,7 @@ export default function SurveyApp() {
               </Link>
               에 동의합니다
               <span className="block text-xs text-ink-500 mt-0.5">
-                이메일·직무·산업군 / 진단 리포트 발송 및 통계 분석 목적 / 3년
+                이메일·연락처·직책·직무·산업군 / 진단 리포트 발송 및 통계 분석 목적 / 3년
                 보관 후 파기
               </span>
             </span>
@@ -374,17 +375,34 @@ export default function SurveyApp() {
 
               <div>
                 <label
+                  htmlFor="contact-job-title"
+                  className="mb-1.5 block text-sm font-semibold"
+                >
+                  직책 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="contact-job-title"
+                  type="text"
+                  value={contact.jobTitle}
+                  onChange={(e) =>
+                    setContact({ ...contact, jobTitle: e.target.value })
+                  }
+                  placeholder="예: 품질팀장, QA 매니저, 생산부장"
+                  className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-[15px] focus:border-brand-500 focus:outline-none"
+                />
+                {showError && contact.jobTitle.trim().length < 1 && (
+                  <p className="mt-1.5 text-sm font-medium text-red-600">
+                    직책을 입력해 주세요.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
                   htmlFor="contact-phone"
                   className="mb-1.5 block text-sm font-semibold"
                 >
-                  연락처{" "}
-                  {phoneRequired ? (
-                    <span className="text-red-500">*</span>
-                  ) : (
-                    <span className="font-normal text-xs text-ink-500">
-                      (선택)
-                    </span>
-                  )}
+                  연락처 <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="contact-phone"
@@ -397,18 +415,11 @@ export default function SurveyApp() {
                   placeholder="010-0000-0000"
                   className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-[15px] focus:border-brand-500 focus:outline-none"
                 />
-                {phoneRequired && (
-                  <p className="mt-1.5 text-xs text-ink-500">
-                    PoC 검토 또는 전문가 자문을 신청하셔서 연락처가 필요합니다.
+                {showError && contact.phone.trim().length < 9 && (
+                  <p className="mt-1.5 text-sm font-medium text-red-600">
+                    연락처를 입력해 주세요.
                   </p>
                 )}
-                {showError &&
-                  phoneRequired &&
-                  contact.phone.trim().length < 9 && (
-                    <p className="mt-1.5 text-sm font-medium text-red-600">
-                      연락처를 입력해 주세요.
-                    </p>
-                  )}
               </div>
 
               <label className="flex cursor-pointer items-start gap-3 rounded-xl border-2 border-slate-200 p-4 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">

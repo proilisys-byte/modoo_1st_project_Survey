@@ -43,11 +43,11 @@ export default function PrivacyPage() {
             </h2>
             <ul className="list-disc space-y-1 pl-5">
               <li>
-                <strong>필수:</strong> 이메일 주소, 설문 응답 내용(직무·산업군·품질
-                운영 관련 응답 포함)
+                <strong>필수:</strong> 이메일 주소, 연락처(전화번호), 직책,
+                설문 응답 내용(직무·산업군·품질 운영 관련 응답 포함)
               </li>
               <li>
-                <strong>선택:</strong> 회사명, 연락처(전화번호)
+                <strong>선택:</strong> 회사명
               </li>
               <li>
                 <strong>자동 수집:</strong> 응답 소요 시간, 브라우저 정보(user agent),
@@ -141,10 +141,10 @@ export default function PrivacyPage() {
               <li>
                 <strong>이메일:</strong>{" "}
                 <a
-                  href="mailto:privacy@proali.kr"
+                  href="mailto:proili.sys@gmail.com"
                   className="text-brand-600 underline"
                 >
-                  privacy@proali.kr
+                  proili.sys@gmail.com
                 </a>
               </li>
               <li>

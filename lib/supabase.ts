@@ -16,7 +16,8 @@ export type SubmissionPayload = {
   answers: Record<string, unknown>;
   email: string;
   company: string | null;
-  phone: string | null;
+  job_title: string;
+  phone: string;
   score: number;
   grade: string;
   grade_code: string;

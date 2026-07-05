@@ -12,6 +12,7 @@ create table if not exists public.survey_responses (
   answers jsonb not null,            -- 전체 문항 응답 (문항 id -> 값)
   email text not null,
   company text,
+  job_title text,
   phone text,
   score integer not null,            -- ISO 실행력 점수 (100점 만점)
   grade text not null,               -- 화면 표시용 친근한 문구
@@ -27,7 +28,8 @@ create table if not exists public.survey_responses (
 alter table public.survey_responses
   add column if not exists submission_uid text,
   add column if not exists grade_code text,
-  add column if not exists grade_internal text;
+  add column if not exists grade_internal text,
+  add column if not exists job_title text;
 
 -- ── 결과 페이지 CTA(무료진단·상담·PoC) 신청 저장 테이블 ──
 create table if not exists public.cta_requests (
