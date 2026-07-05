@@ -1,0 +1,50 @@
+# 02_analysis_design_spec.md / DB 스키마 ↔ analysis 파이프라인 필드명
+# export·s01은 DB 컬럼명(오른쪽)을 사용한다.
+
+schema_table: survey_responses
+
+document_to_schema:
+  attention_check_pass: attention_passed
+  duration_sec: duration_seconds
+  response_id: id  # export 시 id(uuid) 또는 submission_uid
+
+export_excluded_pii:
+  - email
+  - phone
+  - company
+  - job_title
+
+export_excluded_other:
+  - user_agent
+  - grade          # 화면 표시 문구 — grade_code 사용
+  - grade_internal
+  - email_error
+
+export_included:
+  - id
+  - submission_uid
+  - created_at
+  - answers
+  - score
+  - grade_code
+  - pain_scores
+  - attention_passed
+  - duration_seconds
+  - survey_version
+  - scoring_config_version
+  - psm_inconsistent
+  - started_at
+  - submitted_at
+  - consent_required
+  - marketing_opt_in
+  - email_status
+  - c_display_order
+  - benchmark_version
+
+# export 파생 필드 (DB 컬럼 아님, diagnose() 재계산)
+derived_fields:
+  - response_id
+  - d1
+  - d2
+  - d3
+  - d4
