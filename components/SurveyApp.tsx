@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FREQ_LABELS, SECTIONS, SEV_LABELS, type Question } from "@/lib/questions";
+import { buildAnswersDisplay } from "@/lib/answers-display";
+import { SECTIONS, FREQ_LABELS, SEV_LABELS, type Question } from "@/lib/questions";
 import {
   createPainDisplayOrder,
   ensureC9OptionOrder,
@@ -33,7 +34,7 @@ import QuestionBlock from "./QuestionBlock";
 import ResultView from "./ResultView";
 import { ProgressBar, WaferMark } from "./ui";
 
-// step: 0 = 인트로, 1~5 = 섹션 A~E, 6 = 연락처, 7 = 결과
+// step: 0 = 인트로, 1~6 = 섹션 A~F~E, 7 = 연락처, 8 = 결과
 const CONTACT_STEP = SECTIONS.length + 1;
 const RESULT_STEP = SECTIONS.length + 2;
 
@@ -231,6 +232,7 @@ export default function SurveyApp() {
     const res = await submitResponse({
       submission_uid: uid,
       answers,
+      answers_display: buildAnswersDisplay(answers),
       email: contact.email.trim(),
       company: contact.company.trim() || null,
       job_title: contact.jobTitle.trim(),
@@ -321,7 +323,7 @@ export default function SurveyApp() {
           </h1>
           <p className="mt-4 text-[15px] text-ink-700">
             본 진단은 반도체 제조 현장에서 33년간 생산, 품질, 개선 시스템을
-            운영해 온 전문가가 설계했습니다. 약 10분 투자로 다음을 확인하실 수
+            운영해 온 전문가가 설계했습니다. 약 22~25분 투자로 다음을 확인하실 수
             있습니다.
             {/* TODO: 유효 응답 50건 축적 시 duration_seconds 중앙값으로 문구 재조정 */}
           </p>
@@ -383,10 +385,10 @@ export default function SurveyApp() {
             onClick={start}
             className="mt-6 w-full rounded-xl bg-brand-600 py-4 text-base font-bold text-white transition-colors hover:bg-brand-700 active:scale-[0.99]"
           >
-            {resumed ? "이어서 진단하기" : "무료 진단 시작하기 (약 10분)"}
+            {resumed ? "이어서 진단하기" : "무료 진단 시작하기 (약 22~25분)"}
           </button>
           <p className="mt-3 text-center text-xs text-ink-500">
-            총 37문항 · 모바일에서도 편하게 응답하실 수 있습니다
+            메인 50문항 · 조건부 Deep Dive 포함 · 모바일에서도 편하게 응답하실 수 있습니다
           </p>
         </div>
       </div>
@@ -605,7 +607,7 @@ export default function SurveyApp() {
   return (
     <div className="pb-16">
       <ProgressBar
-        label={`${section.name} / 5 — ${section.heading}`}
+        label={`${section.name} / ${SECTIONS.length} — ${section.heading}`}
         percent={percent}
       />
       <div className="mx-auto max-w-2xl px-4 py-6">

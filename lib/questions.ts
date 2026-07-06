@@ -1,5 +1,13 @@
-// PRO_ALI_SMART_설문조사_설계서.md 기준 확정 문항 정의
-// 총 34문항 (+ 주의 확인 문항 1개) — v1 대비 B3A(불량·재작업·폐기율), D2A(혁신활동) 추가
+// Survey_Baseed_v02 + 탐색형 Deep Dive (v3)
+// 메인 50항 + 조건부 Deep Dive + 연락·동의 6항
+import {
+  DEEP_DIVE_A,
+  DEEP_DIVE_B,
+  DEEP_DIVE_C,
+  DEEP_DIVE_D,
+  DEEP_DIVE_E,
+} from "./questions-deep-dive";
+import { SECTION_F_QUESTIONS } from "./questions-section-f";
 
 export type Option = {
   value: string;
@@ -12,7 +20,16 @@ export type Option = {
 
 export type ShowIf =
   | { questionId: string; value: string }
-  | { questionId: string; exceptValues: string[] };
+  | { questionId: string; exceptValues: string[] }
+  | { questionId: string; anyOf: string[] }
+  | { questionId: string; includes: string }
+  | { questionId: string; minIncludes: number }
+  | { questionId: string; rankFirst: string }
+  | { questionId: string; notValue: string }
+  | { questionId: string; values: string[] }
+  | { questionId: string; answered: true };
+
+export type ShowIfRule = ShowIf | { and: ShowIfRule[] } | { or: ShowIfRule[] };
 
 export type SingleQuestion = {
   id: string;
@@ -21,7 +38,9 @@ export type SingleQuestion = {
   note?: string;
   options: Option[];
   required: boolean;
-  showIf?: ShowIf;
+  showIf?: ShowIfRule;
+  /** F0-3-2 등: 다른 문항 선택값을 제외한 보기만 노출 */
+  optionsFrom?: string;
 };
 
 export type MultiQuestion = {
@@ -35,6 +54,18 @@ export type MultiQuestion = {
   /** 정확히 n개 선택 강제 */
   exact?: number;
   required: boolean;
+  showIf?: ShowIfRule;
+};
+
+/** 4항목 순위 매기기 (1~4위, 중복 불가) */
+export type RankQuestion = {
+  id: string;
+  type: "rank";
+  title: string;
+  note?: string;
+  items: { id: string; label: string }[];
+  required: boolean;
+  showIf?: ShowIfRule;
 };
 
 /** 빈도(1~5) × 영향도(1~5) 이중 척도 */
@@ -85,6 +116,7 @@ export type Question =
   | DualScaleQuestion
   | Matrix5Question
   | PriceMatrixQuestion
+  | RankQuestion
   | TextQuestion;
 
 export type Section = {
@@ -134,6 +166,7 @@ export const SECTIONS: Section[] = [
         title: "귀사의 주력 사업 분야는 무엇입니까?",
         required: true,
         options: [
+          { value: "0", label: "반도체 제조" },
           { value: "1", label: "반도체 장비 제조" },
           { value: "2", label: "반도체 부품·소재 제조" },
           { value: "3", label: "반도체 장비·부품 가공/조립 협력 (1~3차)" },
@@ -198,7 +231,8 @@ export const SECTIONS: Section[] = [
           { value: "3", label: "개발/기술" },
           { value: "4", label: "생산관리/구매" },
           { value: "5", label: "경영진 (임원 이상)" },
-          { value: "6", label: "기타", hasText: true },
+          { value: "6", label: "영업/마케팅/CS" },
+          { value: "7", label: "기타", hasText: true },
         ],
       },
       {
@@ -213,6 +247,7 @@ export const SECTIONS: Section[] = [
           { value: "4", label: "관여하지 않는다" },
         ],
       },
+      ...DEEP_DIVE_A,
     ],
   },
   {
@@ -220,13 +255,13 @@ export const SECTIONS: Section[] = [
     name: "섹션 B",
     heading: "품질운영 현황 진단",
     intro:
-      "지난 6개월간 귀사에서 실제로 발생한 이력을 여쭙습니다. 정확한 수치를 모르시면 가장 가까운 것을 선택해 주세요.",
+      "지난 1년간 귀사에서 실제로 발생한 이력을 여쭙습니다. 정확한 수치를 모르시면 가장 가까운 것을 선택해 주세요.",
     questions: [
       {
         id: "B1",
         type: "single",
         title:
-          "지난 6개월간, 고객사 Audit(수검) 또는 ISO 사후심사를 몇 회 받으셨습니까?",
+          "지난 1년간, 고객사 Audit(수검) 또는 ISO 사후심사를 몇 회 받으셨습니까?",
         required: true,
         options: [
           { value: "1", label: "없음" },
@@ -253,7 +288,7 @@ export const SECTIONS: Section[] = [
         id: "B3",
         type: "single",
         title:
-          "지난 6개월간, 출하검사 불합격 또는 출하 후 고객 클레임(반품·선별·라인스톱 통보 포함)이 몇 건 발생했습니까?",
+          "지난 1년간, 출하검사 불합격 또는 출하 후 고객 클레임(반품·선별·라인스톱 통보 포함)이 몇 건 발생했습니까?",
         required: true,
         options: [
           { value: "1", label: "없음" },
@@ -268,7 +303,7 @@ export const SECTIONS: Section[] = [
         id: "B3A",
         type: "single",
         title:
-          "지난 6개월간, 생산 과정에서 불량·재작업·폐기로 처리된 비율(생산 수량 또는 제조원가 대비)은 대략 어느 정도입니까?",
+          "지난 1년간, 생산 과정에서 불량·재작업·폐기로 처리된 비율(생산 수량 또는 제조원가 대비)은 대략 어느 정도입니까?",
         required: true,
         options: [
           { value: "1", label: "1% 미만" },
@@ -332,7 +367,7 @@ export const SECTIONS: Section[] = [
       {
         id: "B6",
         type: "single",
-        title: "동일하거나 유사한 불량이 재발한 경험이 지난 6개월 내 있습니까?",
+        title: "동일하거나 유사한 불량이 재발한 경험이 지난 1년 내 있습니까?",
         required: true,
         options: [
           { value: "1", label: "없다" },
@@ -356,6 +391,7 @@ export const SECTIONS: Section[] = [
           { value: "b7_v2_dedicated", label: "전담자 상주 (일수 산정 불가)" },
         ],
       },
+      ...DEEP_DIVE_B,
     ],
   },
   {
@@ -443,6 +479,7 @@ export const SECTIONS: Section[] = [
         type: "multi",
         title:
           "위 8가지 상황 중, 지금 당장 해결된다면 귀사에 가장 큰 이익이 되는 것 3가지를 골라 주십시오.",
+        note: "선택 순서대로 1순위·2순위·3순위가 기록됩니다.",
         exact: 3,
         required: true,
         options: [
@@ -456,6 +493,7 @@ export const SECTIONS: Section[] = [
           { value: "C8", label: "Audit 지적사항 방치" },
         ],
       },
+      ...DEEP_DIVE_C,
     ],
   },
   {
@@ -530,6 +568,7 @@ export const SECTIONS: Section[] = [
           { value: "6", label: "절차 자체는 지켜지고 있다 (해당 없음)", exclusive: true },
         ],
       },
+      ...DEEP_DIVE_D,
       {
         id: "D4_gate",
         type: "single",
@@ -568,11 +607,19 @@ export const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "F",
+    name: "섹션 F",
+    heading: "IT·시스템 아키텍처 및 도입 탐색",
+    intro:
+      "귀사의 현재 정보관리 방식과 향후 도입 방향을 파악하기 위한 문항입니다. 특정 제품을 가정하지 않고, 귀사 상황에 가장 가까운 것을 선택해 주십시오.",
+    questions: SECTION_F_QUESTIONS,
+  },
+  {
     id: "E",
     name: "섹션 E",
     heading: "솔루션 수용도·지불의사",
     intro:
-      "드디어 마지막 섹션입니다. 만약 아래와 같은 서비스가 있다면 귀사에 얼마나 도움이 될지 여쭤보고 싶습니다.\n\n[이런 서비스입니다] ISO 9001 규정을 우리 회사 공정에 맞는 '매일 쓰는 점검표(체크시트)'로 자동으로 바꿔 주고, 불량(부적합)이 생기면 시정조치 보고서(CAPA·8D) 초안을 AI가 대신 작성해 주며, 부서별 조치 진행 상황과 품질 리스크를 경영진용 보고서로 한눈에 정리해 주는 소프트웨어입니다.",
+      "만약 아래와 같은 서비스가 있다면 귀사에 얼마나 도움이 될지 여쭤보고 싶습니다.\n\n[이런 서비스입니다] ISO 9001 규정을 우리 회사 공정에 맞는 '매일 쓰는 점검표(체크시트)'로 자동으로 바꿔 주고, 불량(부적합)이 생기면 시정조치 보고서(CAPA·8D) 초안을 AI가 대신 작성해 주며, 부서별 조치 진행 상황과 품질 리스크를 경영진용 보고서로 한눈에 정리해 주는 소프트웨어입니다.",
     questions: [
       {
         id: "E1",
@@ -608,6 +655,7 @@ export const SECTIONS: Section[] = [
           { value: "7", label: "기타", hasText: true },
         ],
       },
+      ...DEEP_DIVE_E.filter((q) => q.id.startsWith("E2-1")),
       {
         id: "E3",
         type: "single",
@@ -621,6 +669,7 @@ export const SECTIONS: Section[] = [
           { value: "4", label: "당분간 계획 없다" },
         ],
       },
+      ...DEEP_DIVE_E.filter((q) => q.id === "E3-1"),
       {
         id: "E4",
         type: "priceMatrix",

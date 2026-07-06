@@ -24,15 +24,15 @@ function matrixFilled(
   return Object.fromEntries(rows.map((id) => [id, value]));
 }
 
-/** 전 섹션 필수 문항 최소 충족 answers */
+/** 전 섹션 필수 문항 최소 충족 answers (v3 — Deep Dive 최소 경로) */
 function completeSurveyAnswers(): Answers {
   return {
-    A1: "1",
+    A1: "0",
     A2: "a2_v2_3",
     A3: ["1"],
     A4: "2",
     A5: "1",
-    A6: "2",
+    A6: "3",
     B1: "2",
     B2: "3",
     B3: "2",
@@ -51,15 +51,26 @@ function completeSurveyAnswers(): Answers {
     C6: { freq: 2, sev: 2 },
     C7: { freq: 2, sev: 2 },
     C8: { freq: 2, sev: 2 },
-    C9: ["C1", "C2", "C3"],
+    C9: ["C4", "C5", "C6"],
+    "C9-1_C4": "c9_1_lot",
+    "C9-2": "c9_2_audit",
+    F4: { f4_a: 1, f4_b: 2, f4_c: 3, f4_d: 4 },
     D1: "2",
-    D2: "2",
+    D2: "3",
     D2A: ["none"],
-    D3: ["1", "2"],
+    D3: ["1", "3"],
     D4_gate: "no",
+    "F0-Q1": "f0_q_manual",
+    "F0-Q2": "f0_p_manual",
+    "F0-Q3": "f0_d_oral",
+    "F0-3": "pref_tbd",
+    "F0-3-1": ["f0_3_1_cost"],
+    "F0-4": "data_none",
+    "F5-1": ["f5_1_roi", "f5_1_staff", "f5_1_data"],
+    F6: "mvp_tbd",
     E1: matrixFilled(["a", "b", "c", "d", "e", "f"]),
-    E2: "2",
-    E3: "2",
+    E2: "6",
+    E3: "4",
     E4: { a: 1, b: 2, c: 3, d: 4 },
     E5: "2",
     E6: "2",
@@ -106,7 +117,7 @@ assert(
 
 // --- E3/E6 비적극 → phone은 contact 검증(별도) — answers 검증 통과 ---
 const noPhoneAnswers = completeSurveyAnswers();
-noPhoneAnswers.E3 = "2";
+noPhoneAnswers.E3 = "4";
 noPhoneAnswers.E6 = "2";
 assert(
   findFirstUnansweredRequired(noPhoneAnswers, displayOrder) === null,

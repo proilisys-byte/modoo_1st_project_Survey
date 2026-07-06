@@ -28,7 +28,8 @@ create table if not exists public.survey_responses (
   scoring_config_version text,
   c_display_order jsonb,
   benchmark_version text,
-  result_snapshot jsonb
+  result_snapshot jsonb,
+  answers_display jsonb
 );
 
 -- 이미 테이블이 있는 경우를 위한 컬럼 추가 (최초 생성 시에는 무시됨)
@@ -47,7 +48,8 @@ alter table public.survey_responses
   add column if not exists scoring_config_version text,
   add column if not exists c_display_order jsonb,
   add column if not exists benchmark_version text,
-  add column if not exists result_snapshot jsonb;
+  add column if not exists result_snapshot jsonb,
+  add column if not exists answers_display jsonb;
 
 alter table public.survey_responses enable row level security;
 

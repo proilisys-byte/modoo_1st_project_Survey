@@ -15,6 +15,7 @@
     "smoke:analysis": "python analysis/run_smoke.py --smoke",
     "regenerate:smoke-fixture": "tsx scripts/regenerate-smoke-fixture.ts",
     "generate:question-map": "tsx scripts/generate-question-map.ts",
+    "generate:survey-list": "tsx scripts/generate-survey-print-list.ts",
     "test:email": "tsx scripts/test-email-send.ts"
   },
   "dependencies": {

@@ -77,7 +77,15 @@ export default function QuestionBlock({
 
       {q.type === "single" && (
         <div className="space-y-2">
-          {q.options.map((op) => {
+          {(() => {
+            const excludeFrom =
+              "optionsFrom" in q && q.optionsFrom
+                ? (answers[q.optionsFrom] as string)
+                : undefined;
+            const options = excludeFrom
+              ? q.options.filter((op) => op.value !== excludeFrom)
+              : q.options;
+            return options.map((op) => {
             const selected = answers[q.id] === op.value;
             return (
               <div key={op.value}>
@@ -97,7 +105,8 @@ export default function QuestionBlock({
                 )}
               </div>
             );
-          })}
+          });
+          })()}
         </div>
       )}
 
@@ -306,6 +315,56 @@ export default function QuestionBlock({
           rows={4}
           className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-[15px] focus:border-brand-500 focus:outline-none resize-y"
         />
+      )}
+
+      {q.type === "rank" && (
+        <div className="space-y-4">
+          <p className="text-xs text-ink-500 -mt-2">
+            각 영역에 1~{q.items.length}위 중 서로 다른 순위를 지정해 주세요.
+          </p>
+          {q.items.map((item) => {
+            const m = (answers[q.id] ?? {}) as Record<string, number>;
+            const usedByOthers = new Set(
+              q.items
+                .filter((i) => i.id !== item.id)
+                .map((i) => m[i.id])
+                .filter(Boolean)
+            );
+            return (
+              <div key={item.id}>
+                <p className="mb-2 text-sm font-medium text-ink-700">
+                  {item.label}
+                </p>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {Array.from({ length: q.items.length }, (_, i) => i + 1).map(
+                    (rank) => {
+                      const taken = usedByOthers.has(rank);
+                      const selected = m[item.id] === rank;
+                      return (
+                        <button
+                          key={rank}
+                          type="button"
+                          disabled={taken && !selected}
+                          aria-pressed={selected}
+                          onClick={() => onAnswer(q.id, { ...m, [item.id]: rank })}
+                          className={`h-10 rounded-lg border-2 text-sm font-semibold transition-colors ${
+                            selected
+                              ? "border-brand-600 bg-brand-600 text-white"
+                              : taken
+                                ? "border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed"
+                                : "border-slate-200 bg-white text-ink-700 hover:border-brand-300"
+                          }`}
+                        >
+                          {rank}위
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <ErrorText show={unanswered} />

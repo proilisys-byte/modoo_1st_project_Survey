@@ -19,6 +19,8 @@ import type { ResultSnapshot } from "./result-snapshot";
 export type SubmissionPayload = {
   submission_uid: string;
   answers: Record<string, unknown>;
+  /** Table Editor용 한글 라벨 (응답 코드 → 텍스트) */
+  answers_display?: Record<string, unknown>;
   email: string;
   company: string | null;
   job_title: string;

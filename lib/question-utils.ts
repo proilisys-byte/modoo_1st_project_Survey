@@ -1,6 +1,7 @@
-import type { Option, Question, ShowIf } from "./questions";
+import type { Option, Question, ShowIfRule } from "./questions";
 import type { DualAnswer } from "./scoring";
 import { SECTIONS } from "./questions";
+import { evalShowIfRule } from "./show-if";
 import {
   TOP3_QUESTION_ID,
   type CDisplayOrder,
@@ -40,6 +41,13 @@ export function isAnswered(
     }
     case "text":
       return !q.required || (typeof v === "string" && v.trim().length > 0);
+    case "rank": {
+      const m = (v ?? {}) as Record<string, number>;
+      const ranks = q.items.map((item) => m[item.id]).filter(Boolean);
+      if (ranks.length !== q.items.length) return false;
+      const unique = new Set(ranks);
+      return unique.size === q.items.length;
+    }
   }
 }
 
@@ -65,12 +73,7 @@ export function isQuestionVisible(
   answers: Record<string, unknown>
 ): boolean {
   if ("showIf" in q && q.showIf) {
-    const cond = q.showIf as ShowIf;
-    const ans = answers[cond.questionId];
-    if ("exceptValues" in cond) {
-      return typeof ans === "string" && !cond.exceptValues.includes(ans);
-    }
-    return ans === cond.value;
+    return evalShowIfRule(q.showIf as ShowIfRule, answers);
   }
   return true;
 }
