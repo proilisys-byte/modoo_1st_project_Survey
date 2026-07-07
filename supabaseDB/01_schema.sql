@@ -41,7 +41,8 @@ alter table public.survey_responses
   add column if not exists submission_uid text,
   add column if not exists grade_code text,
   add column if not exists grade_internal text,
-  add column if not exists job_title text;
+  add column if not exists job_title text,
+  add column if not exists contact_name text;
 
 -- ── 결과 페이지 CTA(무료진단·상담·PoC) 신청 저장 테이블 ──
 create table if not exists public.cta_requests (

@@ -38,6 +38,7 @@ alter table public.survey_responses
   add column if not exists grade_code text,
   add column if not exists grade_internal text,
   add column if not exists job_title text,
+  add column if not exists contact_name text,
   add column if not exists survey_version text,
   add column if not exists started_at timestamptz,
   add column if not exists submitted_at timestamptz,

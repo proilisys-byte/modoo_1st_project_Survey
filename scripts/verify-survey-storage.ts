@@ -27,6 +27,7 @@ const base: SavedState = {
   startedAt: Date.now(),
   contact: {
     email: "",
+    name: "",
     company: "",
     jobTitle: "",
     phone: "",

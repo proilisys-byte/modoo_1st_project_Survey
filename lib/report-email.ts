@@ -1,15 +1,54 @@
 import type { DiagnosisResult } from "@/lib/scoring";
+import { buildCtaApplyUrl, CTA_ITEMS } from "@/lib/cta-items";
 
 export type ReportEmailPayload = {
   to: string;
   company: string | null;
   result: DiagnosisResult;
+  submissionUid?: string | null;
 };
+
+function emailButton(href: string, label: string, primary: boolean): string {
+  const bg = primary ? "#2563eb" : "#ffffff";
+  const color = primary ? "#ffffff" : "#2563eb";
+  const border = primary ? "none" : "2px solid #2563eb";
+  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 10px;">
+    <tr>
+      <td align="center" style="border-radius:10px;background:${bg};border:${border};">
+        <a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer"
+           style="display:block;padding:14px 18px;color:${color};font-size:14px;font-weight:700;text-decoration:none;text-align:center;">
+          ${escapeHtml(label)}
+        </a>
+      </td>
+    </tr>
+  </table>`;
+}
+
+function buildEmailCtaSection(submissionUid?: string | null): string {
+  const buttons = CTA_ITEMS.map((item) => {
+    const href = submissionUid
+      ? buildCtaApplyUrl(submissionUid, item.type)
+      : "https://survey.proali.kr/";
+    const label = item.badge
+      ? `${item.title} (${item.badge})`
+      : `${item.title}하기`;
+    return emailButton(href, label, !!item.primary);
+  }).join("");
+
+  return `<div style="margin-top:24px;padding-top:24px;border-top:1px solid #e2e8f0;">
+        <h2 style="margin:0 0 8px;font-size:16px;color:#0f172a;">다음 단계로 진행해 보세요</h2>
+        <p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:#64748b;">
+          아래 버튼을 눌러 원하는 지원을 신청하시면 담당자가 순차적으로 연락드립니다.
+        </p>
+        ${buttons}
+      </div>`;
+}
 
 /** 진단 결과 HTML 이메일 본문 생성 */
 export function buildReportEmailHtml({
   company,
   result,
+  submissionUid,
 }: Omit<ReportEmailPayload, "to">): string {
   const companyLine = company
     ? `<p style="margin:0 0 16px;color:#334155;">${escapeHtml(company)}</p>`
@@ -61,13 +100,13 @@ export function buildReportEmailHtml({
         <h2 style="margin:0 0 8px;font-size:16px;color:#1e3a8a;">그래서, 무엇부터 하면 좋을까요?</h2>
         <p style="margin:0;font-size:14px;line-height:1.6;color:#1e3a8a;">${escapeHtml(result.actionPlan)}</p>
       </div>
-      <p style="margin:0;font-size:13px;color:#64748b;line-height:1.6;">
+      <p style="margin:0 0 24px;font-size:13px;color:#64748b;line-height:1.6;">
         본 리포트는 설문 응답을 바탕으로 자동 생성되었습니다.
-        추가 상담·현장 진단은 <a href="https://survey.proali.kr/" style="color:#2563eb;">설문 결과 페이지</a>에서 신청하실 수 있습니다.
       </p>
+      ${buildEmailCtaSection(submissionUid)}
     </div>
     <p style="margin:16px 0 0;text-align:center;font-size:12px;color:#94a3b8;">
-      PRO ALI SMART · survey.proali.kr
+      PRO ALI SMART · <a href="https://survey.proali.kr/" style="color:#94a3b8;text-decoration:none;">survey.proali.kr</a>
     </p>
   </div>
 </body>

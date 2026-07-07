@@ -72,6 +72,7 @@ export async function POST(request: Request) {
   const html = buildReportEmailHtml({
     company: body.company ?? null,
     result,
+    submissionUid: uid || null,
   });
   const subject = `[PRO ALI SMART] ISO 실행력 진단 리포트 — ${result.total}점 (${result.gradeName})`;
 

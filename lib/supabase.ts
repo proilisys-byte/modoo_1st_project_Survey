@@ -22,6 +22,7 @@ export type SubmissionPayload = {
   /** Table Editor용 한글 라벨 (응답 코드 → 텍스트) */
   answers_display?: Record<string, unknown>;
   email: string;
+  contact_name: string;
   company: string | null;
   job_title: string;
   phone: string | null;
@@ -72,15 +73,26 @@ export type CtaPayload = {
   grade_code: string;
 };
 
-/** 결과 페이지 CTA(무료진단·상담·PoC) 신청 저장 */
+/** 결과 페이지 CTA(무료진단·상담·PoC) 신청 저장 — 서버 API 경유(관리자 알림 포함) */
 export async function submitCtaRequest(
   payload: CtaPayload
 ): Promise<{ saved: boolean; error?: string }> {
-  const supabase = getSupabase();
-  if (!supabase) {
-    return { saved: false, error: "Supabase 환경변수 미설정 (로컬 미리보기 모드)" };
+  try {
+    const res = await fetch("/api/cta-request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        submission_uid: payload.submission_uid,
+        cta_type: payload.cta_type,
+        phone: payload.phone ?? undefined,
+      }),
+    });
+    const data = (await res.json()) as { saved?: boolean; error?: string };
+    if (!res.ok || !data.saved) {
+      return { saved: false, error: data.error ?? "신청 저장 실패" };
+    }
+    return { saved: true };
+  } catch {
+    return { saved: false, error: "네트워크 오류" };
   }
-  const { error } = await supabase.from("cta_requests").insert(payload);
-  if (error) return { saved: false, error: error.message };
-  return { saved: true };
 }

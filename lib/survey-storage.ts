@@ -5,6 +5,7 @@ export const STORAGE_KEY = "proali_survey_v2";
 
 export type SavedContact = {
   email: string;
+  name: string;
   company: string;
   jobTitle: string;
   phone: string;

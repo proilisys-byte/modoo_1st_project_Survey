@@ -66,6 +66,7 @@ function countQuestionsBefore(
 
 type Contact = {
   email: string;
+  name: string;
   company: string;
   jobTitle: string;
   phone: string;
@@ -75,6 +76,7 @@ type Contact = {
 
 const EMPTY_CONTACT: Contact = {
   email: "",
+  name: "",
   company: "",
   jobTitle: "",
   phone: "",
@@ -184,6 +186,7 @@ export default function SurveyApp() {
   const contactValid =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim()) &&
     contact.consentRequired &&
+    contact.name.trim().length >= 1 &&
     contact.company.trim().length >= 1 &&
     contact.jobTitle.trim().length >= 1 &&
     (!phoneRequired || contact.phone.trim().length >= 9);
@@ -221,6 +224,7 @@ export default function SurveyApp() {
       to: contact.email.trim(),
       company: contact.company.trim() || null,
       result: diagnosis,
+      submissionUid: uid,
     };
 
     let emailRes = await sendReportEmail(emailPayload);
@@ -234,6 +238,7 @@ export default function SurveyApp() {
       answers,
       answers_display: buildAnswersDisplay(answers),
       email: contact.email.trim(),
+      contact_name: contact.name.trim(),
       company: contact.company.trim() || null,
       job_title: contact.jobTitle.trim(),
       phone: phoneTrimmed.length >= 9 ? phoneTrimmed : null,
@@ -460,6 +465,31 @@ export default function SurveyApp() {
                       올바른 이메일 주소를 입력해 주세요.
                     </p>
                   )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="contact-name"
+                  className="mb-1.5 block text-sm font-semibold"
+                >
+                  이름 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="contact-name"
+                  type="text"
+                  autoComplete="name"
+                  value={contact.name}
+                  onChange={(e) =>
+                    setContact({ ...contact, name: e.target.value })
+                  }
+                  placeholder="예: 홍길동"
+                  className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-[15px] focus:border-brand-500 focus:outline-none"
+                />
+                {showError && contact.name.trim().length < 1 && (
+                  <p className="mt-1.5 text-sm font-medium text-red-600">
+                    이름을 입력해 주세요.
+                  </p>
+                )}
               </div>
 
               <div>
