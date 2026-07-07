@@ -79,6 +79,13 @@ export async function POST(request: Request) {
   });
 
   if (!outcome.sent) {
+    const { error: failUpdateError } = await admin
+      .from("survey_responses")
+      .update({ email_status: "failed" })
+      .eq("submission_uid", uid);
+    if (failUpdateError) {
+      console.error("send-report-by-uid: email_status failed update", failUpdateError);
+    }
     return NextResponse.json(
       { sent: false, error: REPORT_EMAIL_USER_ERROR },
       { status: outcome.detail === "resend_not_configured" ? 503 : 502 }

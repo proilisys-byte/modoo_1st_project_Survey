@@ -51,7 +51,12 @@ export default function ResultView({
   saveError?: string;
   emailSent: boolean;
   submissionUid: string;
-  onResendReport: () => Promise<{ sent: boolean; rateLimited?: boolean }>;
+  onResendReport: (options?: { force?: boolean }) => Promise<{
+    sent: boolean;
+    rateLimited?: boolean;
+    statusCode?: number;
+    error?: string;
+  }>;
   onCtaRequest: (
     ctaType: CtaType,
     phone: string
@@ -68,8 +73,9 @@ export default function ResultView({
   });
   const [ctaError, setCtaError] = useState<string | undefined>();
   const [resendState, setResendState] = useState<
-    "idle" | "loading" | "done" | "limited"
+    "idle" | "loading" | "done" | "limited" | "error"
   >("idle");
+  const [resendError, setResendError] = useState<string | undefined>();
   const autoResendDone = useRef(false);
 
   useEffect(() => {
@@ -97,10 +103,31 @@ export default function ResultView({
 
   const handleResend = async () => {
     setResendState("loading");
-    const res = await onResendReport();
-    if (res.rateLimited) setResendState("limited");
-    else if (res.sent) setResendState("done");
-    else setResendState("idle");
+    setResendError(undefined);
+    const res = await onResendReport({ force: true });
+    if (res.rateLimited) {
+      setResendState("limited");
+      return;
+    }
+    if (res.sent) {
+      setResendState("done");
+      return;
+    }
+    setResendState("error");
+    if (res.statusCode === 503) {
+      setResendError(
+        "서버 메일 설정이 아직 완료되지 않았습니다. 잠시 후 다시 시도하거나 관리자에게 문의해 주세요."
+      );
+    } else if (res.statusCode === 404) {
+      setResendError(
+        "응답 정보를 찾을 수 없습니다. 설문을 다시 제출해 주세요."
+      );
+    } else {
+      setResendError(
+        res.error ??
+          "재발송에 실패했습니다. 스팸함을 확인하시거나 잠시 후 다시 시도해 주세요."
+      );
+    }
   };
   const toggleCta = async (type: CtaType) => {
     const applied = ctaState[type] === "done";
@@ -349,6 +376,9 @@ export default function ResultView({
                 <p className="mt-2 text-xs text-amber-700">
                   15분에 한 번만 재발송할 수 있습니다.
                 </p>
+              )}
+              {resendState === "error" && resendError && (
+                <p className="mt-2 text-xs text-amber-700">{resendError}</p>
               )}
             </>
           )

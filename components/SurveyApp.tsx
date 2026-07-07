@@ -320,12 +320,16 @@ export default function SurveyApp() {
         saveError={saveError}
         emailSent={emailSent}
         submissionUid={submissionUid}
-        onResendReport={async () => {
-          const res = await resendReportEmail(submissionUid, {
-            to: contact.email.trim(),
-            company: contact.company.trim() || null,
-            result,
-          });
+        onResendReport={async (options) => {
+          const res = await resendReportEmail(
+            submissionUid,
+            {
+              to: contact.email.trim(),
+              company: contact.company.trim() || null,
+              result,
+            },
+            options
+          );
           if (res.sent) setEmailSent(true);
           return res;
         }}
