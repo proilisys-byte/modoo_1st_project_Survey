@@ -19,7 +19,6 @@ const answers: Record<string, unknown> = {
   Q20: { first: "sys_capa", second: "sys_delivery" },
   "Q20-1": "q20_1_defect",
   "Q20-2": "pref_mes",
-  "Q20-3": "pref_saas",
   F28: ["f28_roi", "f28_staff", "f28_data"],
   "F28-1_f28_roi": "f28_1_roi_effect",
   E25: { quality: "e25_excel", production: "e25_mes", delivery: "e25_erp" },

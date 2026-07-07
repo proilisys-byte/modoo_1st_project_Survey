@@ -52,7 +52,7 @@ function getMockAnswers() {
     F30: { a: 1, b: 2, c: 3, d: 4 },
     F31: "2",
     F32: "2",
-    "F32-1": ["f32_1_capa", "f32_1_audit"],
+    "F32-1": ["f32_1_defect", "f32_1_audit"],
     F34: "2",
   };
 }

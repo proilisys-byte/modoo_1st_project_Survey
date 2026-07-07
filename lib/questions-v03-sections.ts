@@ -4,12 +4,12 @@
 import type { Question, Section } from "./questions";
 
 const PRICE_BANDS = [
-  "10만 원 미만",
-  "10만~30만 원 미만",
-  "30만~50만 원 미만",
-  "50만~100만 원 미만",
-  "100만~200만 원 미만",
-  "200만 원 이상",
+  "10만원 미만",
+  "10만~30만원 미만",
+  "30만~50만원 미만",
+  "50만~100만원 미만",
+  "100만~200만원 미만",
+  "200만원 이상",
 ];
 
 const E25_COLS = [
@@ -49,7 +49,7 @@ const F28_BARRIER_FOLLOWUPS: {
 }[] = [
   {
     value: "f28_roi",
-    title: "(Deep Dive) 예산·ROI 불확실 — 구체적 우려는?",
+    title: "예산·ROI 불확실 — 구체적 우려는?",
     options: [
       { value: "f28_1_roi_effect", label: "효과·ROI 입증 불가" },
       { value: "f28_1_roi_mgmt", label: "경영진 비용·우선순위 미관심" },
@@ -58,7 +58,7 @@ const F28_BARRIER_FOLLOWUPS: {
   },
   {
     value: "f28_staff",
-    title: "(Deep Dive) 전담 인력 부족 — 구체적 우려는?",
+    title: "전담 인력 부족 — 구체적 우려는?",
     options: [
       { value: "f28_1_staff_none", label: "품질·IT 전담 인력 없음" },
       { value: "f28_1_staff_load", label: "기존 담당자 업무 과중" },
@@ -67,7 +67,7 @@ const F28_BARRIER_FOLLOWUPS: {
   },
   {
     value: "f28_mgmt",
-    title: "(Deep Dive) 경영진 우선순위 — 구체적 우려는?",
+    title: "경영진 우선순위 — 구체적 우려는?",
     options: [
       { value: "f28_1_mgmt_prod", label: "생산·납기가 품질보다 우선" },
       { value: "f28_1_mgmt_short", label: "단기 실적 중심 의사결정" },
@@ -76,7 +76,7 @@ const F28_BARRIER_FOLLOWUPS: {
   },
   {
     value: "f28_data",
-    title: "(Deep Dive) 데이터 품질·표준화 — 구체적 우려는?",
+    title: "데이터 품질·표준화 — 구체적 우려는?",
     options: [
       { value: "f28_1_data_std", label: "데이터 표준·코드 미정립" },
       { value: "f28_1_data_nda", label: "고객 NDA·반출 제한" },
@@ -85,7 +85,7 @@ const F28_BARRIER_FOLLOWUPS: {
   },
   {
     value: "f28_security",
-    title: "(Deep Dive) IT·보안·망분리 — 구체적 우려는?",
+    title: "IT·보안·망분리 — 구체적 우려는?",
     options: [
       { value: "f28_1_sec_air", label: "망분리·폐쇄망 정책" },
       { value: "f28_1_sec_cloud", label: "클라oud·SaaS 사용 제한" },
@@ -94,7 +94,7 @@ const F28_BARRIER_FOLLOWUPS: {
   },
   {
     value: "f28_dup",
-    title: "(Deep Dive) ERP/MES 중복 — 구체적 우려는?",
+    title: "ERP/MES 중복 — 구체적 우려는?",
     options: [
       { value: "f28_1_dup_erp", label: "기존 ERP와 기능 중복" },
       { value: "f28_1_dup_mes", label: "MES·현장 시스템과 중복" },
@@ -103,7 +103,7 @@ const F28_BARRIER_FOLLOWUPS: {
   },
   {
     value: "f28_change",
-    title: "(Deep Dive) 현장 변화·입력 부담 — 구체적 우려는?",
+    title: "현장 변화·입력 부담 — 구체적 우려는?",
     options: [
       { value: "f28_1_change_input", label: "추가 입력·이중 기록" },
       { value: "f28_1_change_train", label: "교육·온보딩 부담" },
@@ -112,7 +112,7 @@ const F28_BARRIER_FOLLOWUPS: {
   },
   {
     value: "f28_ref",
-    title: "(Deep Dive) 레퍼런스 부족 — 구체적 우려는?",
+    title: "레퍼런스 부족 — 구체적 우려는?",
     options: [
       { value: "f28_1_ref_ind", label: "동종·유사 업종 사례 부족" },
       { value: "f28_1_ref_size", label: "규모·공정 차이" },
@@ -121,7 +121,7 @@ const F28_BARRIER_FOLLOWUPS: {
   },
   {
     value: "f28_vendor",
-    title: "(Deep Dive) 벤더 리스크 — 구체적 우려는?",
+    title: "벤더 리스크 — 구체적 우려는?",
     options: [
       { value: "f28_1_vendor_lock", label: "벤더 lock-in" },
       { value: "f28_1_vendor_exit", label: "도입 후 이탈·유지비" },
@@ -227,7 +227,7 @@ export const SECTIONS: Section[] = [
       {
         id: "A6-1",
         type: "single",
-        title: "(Deep Dive) 품질·운영 IT·AI 도구 도입 예산·결정 경험은?",
+        title: "품질·운영 IT·AI 도구 도입 예산·결정 경험은?",
         required: true,
         showIf: { questionId: "A6", anyOf: ["1", "2"] },
         options: [
@@ -276,7 +276,7 @@ export const SECTIONS: Section[] = [
       {
         id: "B2-1",
         type: "single",
-        title: "(Deep Dive) 지적받은 대표 영역은?",
+        title: "지적받은 대표 영역은?",
         required: true,
         showIf: { questionId: "B2", anyOf: ["1", "2"] },
         options: [
@@ -293,7 +293,7 @@ export const SECTIONS: Section[] = [
       {
         id: "B2-2",
         type: "single",
-        title: "(Deep Dive) 문서와 현장이 어긋나는 주된 이유는?",
+        title: "문서와 현장이 어긋나는 주된 이유는?",
         required: true,
         showIf: { questionId: "B2-1", answered: true },
         options: [
@@ -336,7 +336,7 @@ export const SECTIONS: Section[] = [
       {
         id: "q10_basis",
         type: "single",
-        title: "(Deep Dive) 위 비율의 분모 기준은?",
+        title: "위 비율의 분모 기준은?",
         required: true,
         showIf: { questionId: "B3A", exceptValues: ["6"] },
         options: [
@@ -411,7 +411,7 @@ export const SECTIONS: Section[] = [
       {
         id: "P15-1",
         type: "single",
-        title: "(Deep Dive) 가장 시간·스트레스를 소모하는 세부 작업은?",
+        title: "가장 시간·스트레스를 소모하는 세부 작업은?",
         required: true,
         showIf: { questionId: "P15", painThreshold: { freqGte: 3, sevGte: 4 } },
         options: [
@@ -465,7 +465,7 @@ export const SECTIONS: Section[] = [
       {
         id: "Q20-1",
         type: "single",
-        title: "(Deep Dive) 그 시스템이 필요하다고 느끼는 가장 큰 이유는?",
+        title: "그 시스템이 필요하다고 느끼는 가장 큰 이유는?",
         required: true,
         showIf: { questionId: "Q20", rankPickFirstAnswered: true },
         options: [
@@ -482,7 +482,7 @@ export const SECTIONS: Section[] = [
       {
         id: "Q20-2",
         type: "single",
-        title: "(Deep Dive) 향후 도입 1순위 아키텍처 선호는?",
+        title: "향후 도입 1순위 아키텍처 선호는?",
         required: true,
         showIf: {
           and: [
@@ -490,20 +490,6 @@ export const SECTIONS: Section[] = [
             { questionId: "Q20", rankPickFirstNot: "sys_tbd" },
           ],
         },
-        options: ARCH_OPTIONS,
-      },
-      {
-        id: "Q20-3",
-        type: "single",
-        title: "(Deep Dive) 2순위로 검토 가능한 형태는? (1순위 아키텍처와 다른 보기)",
-        required: true,
-        showIf: {
-          and: [
-            { questionId: "Q20-2", answered: true },
-            { questionId: "Q20-2", notValue: "pref_excel" },
-          ],
-        },
-        optionsFrom: "Q20-2",
         options: ARCH_OPTIONS,
       },
     ],
@@ -545,7 +531,7 @@ export const SECTIONS: Section[] = [
       {
         id: "D3-1",
         type: "single",
-        title: "(Deep Dive) 실정과 어긋난 대표 공정·영역은?",
+        title: "실정과 어긋난 대표 공정·영역은?",
         required: true,
         showIf: { questionId: "D3", includes: "2" },
         options: [
@@ -602,7 +588,7 @@ export const SECTIONS: Section[] = [
       {
         id: "E25-1",
         type: "single",
-        title: "(Deep Dive) 수기·엑셀을 유지하는 주된 이유는?",
+        title: "수기·엑셀을 유지하는 주된 이유는?",
         required: true,
         showIf: {
           questionId: "E25",
@@ -620,7 +606,7 @@ export const SECTIONS: Section[] = [
       {
         id: "E25-2",
         type: "multi",
-        title: "(Deep Dive) 정식 운영 중인 시스템을 모두 선택해 주십시오.",
+        title: "정식 운영 중인 시스템을 모두 선택해 주십시오.",
         required: true,
         showIf: {
           questionId: "E25",
@@ -640,7 +626,7 @@ export const SECTIONS: Section[] = [
       {
         id: "E25-3",
         type: "single",
-        title: "(Deep Dive) 배포·운영 형태는?",
+        title: "배포·운영 형태는?",
         required: true,
         showIf: {
           questionId: "E25-2",
@@ -724,7 +710,8 @@ export const SECTIONS: Section[] = [
       {
         id: "F29",
         type: "single",
-        title: "4~6주 유료 PoC 참여 의향은?",
+        title:
+          "AI 기반 개선 및 효과가 있다고 한다면 4~6주 유료 PoC 참여 의향은?",
         required: true,
         options: [
           { value: "1", label: "적극 검토(연락 요청)" },
@@ -736,23 +723,45 @@ export const SECTIONS: Section[] = [
       {
         id: "F29-1",
         type: "multi",
-        title: "(Deep Dive) 본 도입·유료 전환 조건 (최대 2개)",
-        max: 2,
+        title: "본 도입·유료 전환 조건 (해당 항목 모두 선택)",
         required: true,
         showIf: { questionId: "F29", anyOf: ["2", "3"] },
         options: [
-          { value: "f29_1_time", label: "업무시간 N% 절감" },
-          { value: "f29_1_audit", label: "Audit 지적 N건 감소" },
-          { value: "f29_1_capa", label: "CAPA 기간 단축" },
-          { value: "f29_1_roi", label: "ROI 입증" },
-          { value: "f29_1_opex", label: "월 OPEX 상한" },
+          {
+            value: "f29_1_delivery",
+            label: "납기 준수율 향상 또는 Cycle Time 단축 효과가 확인되는 것",
+          },
+          {
+            value: "f29_1_defect",
+            label: "불량, 재작업, 반복 부적합이 감소하는 것",
+          },
+          {
+            value: "f29_1_cost",
+            label: "원가절감 개선효과 가능한 것",
+          },
+          {
+            value: "f29_1_kpi",
+            label: "생산성·설비효율·품질 KPI 개선 효과가 확인되는 것",
+          },
+          {
+            value: "f29_1_roi",
+            label: "ROI가 입증되고 월 사용료가 감당 가능한 수준인 것",
+          },
+          {
+            value: "f29_1_audit",
+            label: "ISO 내부심사·고객 Audit 대응 시간이 줄어드는 것",
+          },
+          {
+            value: "f29_1_capa",
+            label: "NCR, CAPA, 8D 작성 및 시정조치 기간이 단축되는 것",
+          },
           { value: "f29_1_etc", label: "기타", hasText: true },
         ],
       },
       {
         id: "F29-2",
         type: "single",
-        title: "(Deep Dive) 도입 승인·예산 집행 의사결정 구조는?",
+        title: "도입 승인·예산 집행 의사결정 구조는?",
         required: true,
         showIf: { questionId: "F29", anyOf: ["1", "2"] },
         options: [
@@ -766,7 +775,7 @@ export const SECTIONS: Section[] = [
       {
         id: "F30",
         type: "priceMatrix",
-        title: "(Van Westendorp) 월 구독료 수용도 — 행별 금액대 1개",
+        title: "(가격 민감도 조사) 월 구독료 수용도",
         bands: PRICE_BANDS,
         required: true,
         rows: [
@@ -805,18 +814,30 @@ export const SECTIONS: Section[] = [
       {
         id: "F32-1",
         type: "multi",
-        title: "(Deep Dive) PoC에서 반드시 검증할 KPI (최대 2개)",
-        max: 2,
+        title: "PoC에서 반드시 검증할 KPI (해당 항목 모두 선택)",
         required: true,
         showIf: { questionId: "F32", anyOf: ["2", "3"] },
         options: [
-          { value: "f32_1_capa", label: "CAPA 리드타임" },
-          { value: "f32_1_audit", label: "Audit man-day" },
-          { value: "f32_1_recur", label: "재발률" },
-          { value: "f32_1_defect", label: "불량·재작업률" },
-          { value: "f32_1_delivery", label: "납기준수율" },
-          { value: "f32_1_time", label: "담당자 업무시간" },
-          { value: "f32_1_report", label: "경영 보고 자동화" },
+          {
+            value: "f32_1_delivery",
+            label: "납기 준수·Cycle Time 단축",
+          },
+          {
+            value: "f32_1_defect",
+            label: "불량·클레임 원인분석 및 CAPA/8D/NCR 자동화",
+          },
+          {
+            value: "f32_1_oee",
+            label: "생산성·설비효율 개선",
+          },
+          {
+            value: "f32_1_audit",
+            label: "ISO 내부심사·Audit 자동화",
+          },
+          {
+            value: "f32_1_kpi",
+            label: "경영진 KPI·손실비용·납기 리스크 월간 리포트",
+          },
           { value: "f32_1_etc", label: "기타", hasText: true },
         ],
       },

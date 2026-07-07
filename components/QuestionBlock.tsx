@@ -15,7 +15,7 @@ export { isAnswered };
 
 type Props = {
   question: Question;
-  index: number;
+  index: string | number;
   answers: Record<string, unknown>;
   showError: boolean;
   onAnswer: (id: string, value: unknown) => void;
@@ -370,9 +370,13 @@ export default function QuestionBlock({
       {q.type === "rankPick" && (
         <div className="space-y-5">
           {(["first", "second"] as const).map((slot, idx) => {
-            const rp = (answers[q.id] ?? {}) as { first?: string; second?: string };
+            const rp = (answers[q.id] ?? {}) as {
+              first?: string;
+              second?: string;
+            };
             const selected = rp[slot];
-            const otherSlot = slot === "first" ? rp.second : rp.first;
+            const otherKey = slot === "first" ? "second" : "first";
+            const otherValue = rp[otherKey];
             return (
               <div key={slot}>
                 <p className="mb-2 text-sm font-medium text-ink-700">
@@ -380,18 +384,35 @@ export default function QuestionBlock({
                 </p>
                 <div className="space-y-2">
                   {q.options.map((op) => {
-                    const taken = otherSlot === op.value;
                     const isSelected = selected === op.value;
+                    const blocked =
+                      !isSelected && otherValue === op.value;
                     return (
                       <OptionCard
-                        key={op.value}
+                        key={`${slot}-${op.value}`}
                         selected={isSelected}
                         onClick={() => {
-                          if (taken && !isSelected) return;
-                          onAnswer(q.id, { ...rp, [slot]: op.value });
+                          if (isSelected) {
+                            const next = { ...rp };
+                            delete next[slot];
+                            onAnswer(q.id, next);
+                            return;
+                          }
+                          const next = { ...rp, [slot]: op.value };
+                          if (next[otherKey] === op.value) {
+                            delete next[otherKey];
+                          }
+                          onAnswer(q.id, next);
                         }}
                       >
-                        {op.label}
+                        <span
+                          className={
+                            blocked ? "text-ink-400" : undefined
+                          }
+                        >
+                          {op.label}
+                          {blocked && !isSelected ? " (다른 순위에 선택됨)" : ""}
+                        </span>
                       </OptionCard>
                     );
                   })}

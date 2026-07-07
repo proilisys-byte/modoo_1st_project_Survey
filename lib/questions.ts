@@ -155,12 +155,12 @@ export const SEV_LABELS = [
 ];
 
 export const PRICE_BANDS = [
-  "10만 원 미만",
-  "10만~30만 원 미만",
-  "30만~50만 원 미만",
-  "50만~100만 원 미만",
-  "100만~200만 원 미만",
-  "200만 원 이상",
+  "10만원 미만",
+  "10만~30만원 미만",
+  "30만~50만원 미만",
+  "50만~100만원 미만",
+  "100만~200만원 미만",
+  "200만원 이상",
 ];
 
 export { SECTIONS, PAIN_LABELS } from "./questions-v03-sections";

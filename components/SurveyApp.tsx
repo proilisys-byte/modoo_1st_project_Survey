@@ -28,6 +28,7 @@ import {
 import { submitCtaRequest, submitResponse, type CtaType } from "@/lib/supabase";
 import { sendReportEmail } from "@/lib/send-report";
 import { resendReportEmail } from "@/lib/resend-report";
+import { getQuestionDisplayLabel } from "@/lib/question-display-numbers";
 import QuestionBlock from "./QuestionBlock";
 import ResultView from "./ResultView";
 import { ProgressBar, WaferMark } from "./ui";
@@ -134,11 +135,7 @@ export default function SurveyApp() {
         const rp = value as { first?: string; second?: string };
         if (rp.first === "sys_tbd") {
           delete next["Q20-2"];
-          delete next["Q20-3"];
         }
-      }
-      if (id === "Q20-2" && value === "pref_excel") {
-        delete next["Q20-3"];
       }
       return next;
     });
@@ -186,7 +183,6 @@ export default function SurveyApp() {
   const contactValid =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim()) &&
     contact.consentRequired &&
-    contact.marketingOptIn &&
     contact.company.trim().length >= 1 &&
     contact.jobTitle.trim().length >= 1 &&
     (!phoneRequired || contact.phone.trim().length >= 9);
@@ -558,15 +554,10 @@ export default function SurveyApp() {
                   className="mt-0.5 h-4 w-4 accent-brand-600"
                 />
                 <span className="text-sm text-ink-700">
-                  <span className="font-semibold text-red-600">[필수]</span>{" "}
+                  <span className="font-semibold text-ink-600">[선택]</span>{" "}
                   개선 사례·세미나 등 관련 자료 수신에 동의합니다.
                 </span>
               </label>
-              {showError && !contact.marketingOptIn && (
-                <p className="text-sm font-medium text-red-600">
-                  자료 수신 동의에 체크해 주세요.
-                </p>
-              )}
             </div>
 
             <div className="mt-6 flex gap-3">
@@ -600,7 +591,6 @@ export default function SurveyApp() {
     answers,
     displayOrder
   );
-  const ALL_QUESTIONS = SECTIONS.flatMap((s) => s.questions);
   const percent = (step / (CONTACT_STEP + 1)) * 100;
   const psmWarning =
     section.id === "F" && isPsmInconsistent(answers);
@@ -663,19 +653,16 @@ export default function SurveyApp() {
         )}
  
         <div className="space-y-4">
-          {visibleQuestions.map((q) => {
-            const questionNumber = ALL_QUESTIONS.findIndex((item) => item.id === q.id) + 1;
-            return (
+          {visibleQuestions.map((q) => (
               <QuestionBlock
                 key={q.id}
                 question={q}
-                index={questionNumber}
+                index={getQuestionDisplayLabel(q.id)}
                 answers={answers}
                 showError={showError}
                 onAnswer={onAnswer}
               />
-            );
-          })}
+            ))}
         </div>
 
         <div className="mt-6 flex gap-3">

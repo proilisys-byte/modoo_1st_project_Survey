@@ -11,6 +11,7 @@
 | `02_rls_policies.sql` | RLS 활성화 + anon insert 전용 정책 | 2 |
 | `03_verify.sql` | 구축 결과 검증 (테이블·RLS·정책 확인) | 3 |
 | `04_survey_v2_columns.sql` | v2 메타 컬럼 추가 (기존 DB 마이그레이션) | 4 (v2 배포 시) |
+| `08_answers_display_v3.sql` | v3 `answers_display` 컬럼 + Excel 뷰 | 5 (v3 배포 시) |
 | `99_reset.sql` | ⚠️ 전체 삭제 (재구축용, 데이터 파괴) | 필요 시에만 |
 
 ## 구축 절차
@@ -44,23 +45,29 @@
    - **anon public** 키 → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 3. ⚠️ `service_role` 키는 **절대 사용하지 않습니다** (서버 전용, 클라이언트 노출 금지)
 
+**v3 배포(이미 DB가 있는 경우):** `08_answers_display_v3.sql`을 SQL Editor에서 실행하세요.
+(`answers_display jsonb` 컬럼 — v3 제출 시 필수)
+
 ### 4단계 — Vercel 환경변수 등록
 
 1. Vercel Dashboard → 프로젝트 → **Settings → Environment Variables**
-2. 아래 2개를 **Production, Preview** 스코프로 추가:
+2. 아래를 **Production, Preview** 스코프로 추가:
 
 | Name | Value |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | 3단계의 Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 3단계의 anon public 키 |
+| `RESEND_API_KEY` | Resend API 키 (로컬 `.env.local`과 동일) |
+| `EMAIL_FROM` | `PRO ALI SMART <noreply@survey.proali.kr>` |
 
 3. **Deployments → 최신 배포 → Redeploy** 실행
-   (`NEXT_PUBLIC_*`은 빌드 시점에 인라인되므로 재배포 필수)
+   (`NEXT_PUBLIC_*`은 빌드 시점에 인라인되므로 재배포 필수. `RESEND_*`도 재배포 후 API Route에 반영됨)
 
 ### 5단계 — 동작 검증
 
 - [ ] https://survey.proali.kr/ 에서 설문을 끝까지 제출
 - [ ] 결과 페이지에 "응답이 서버에 저장되지 않았습니다" 경고가 **없는지** 확인
+- [ ] 결과 페이지에 "진단 리포트가 … 발송되었습니다" 문구 확인 (또는 재발송 버튼 동작)
 - [ ] Dashboard → **Table Editor** → `survey_responses`에 행 생성 확인
 - [ ] 결과 페이지에서 CTA(무료진단 등) 신청 → `cta_requests`에 행 생성 확인
 - [ ] `answers` 컬럼에 문항 응답 JSON이 온전히 들어있는지 확인

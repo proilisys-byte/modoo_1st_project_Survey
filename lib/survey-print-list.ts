@@ -9,6 +9,7 @@ import {
   type Question,
   type ShowIfRule,
 } from "./questions";
+import { getQuestionDisplayLabel } from "./question-display-numbers";
 import { SURVEY_VERSION } from "./survey-meta";
 
 function showIfText(showIf: ShowIfRule): string {
@@ -45,7 +46,8 @@ function showIfText(showIf: ShowIfRule): string {
   return "조건부";
 }
 
-function formatQuestionText(q: Question, num: number): string[] {
+function formatQuestionText(q: Question): string[] {
+  const num = getQuestionDisplayLabel(q.id);
   const lines: string[] = [`${num}. ${q.title}`];
 
   if ("showIf" in q && q.showIf) {
@@ -141,7 +143,6 @@ export function buildSurveyQuestionListPlainText(): string {
     "",
   ];
 
-  let num = 0;
   for (const section of SECTIONS) {
     lines.push("─".repeat(60));
     lines.push(`${section.name}. ${section.heading}`);
@@ -162,8 +163,7 @@ export function buildSurveyQuestionListPlainText(): string {
     }
 
     for (const q of section.questions) {
-      num += 1;
-      lines.push(...formatQuestionText(q, num));
+      lines.push(...formatQuestionText(q));
     }
   }
 
@@ -172,12 +172,12 @@ export function buildSurveyQuestionListPlainText(): string {
     "마무리. 연락처 및 동의",
     "─".repeat(60),
     "",
-    `${num + 1}. 이메일 (필수)`,
-    `${num + 2}. 회사명 (필수)`,
-    `${num + 3}. 직책 (필수)`,
-    `${num + 4}. 연락처 (조건부 필수)`,
-    `${num + 5}. 진단 리포트 발송 개인정보 수집·이용 동의 (필수)`,
-    `${num + 6}. 관련 자료 수신 동의 (필수)`,
+    "35. 이메일 (필수)",
+    "36. 회사명 (필수)",
+    "37. 직책 (필수)",
+    "38. 연락처 (조건부 필수)",
+    "39. 진단 리포트 발송 개인정보 수집·이용 동의 (필수)",
+    "40. 관련 자료 수신 동의 (선택)",
     ""
   );
 

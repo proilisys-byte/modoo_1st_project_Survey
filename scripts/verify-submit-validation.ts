@@ -43,7 +43,6 @@ function completeSurveyAnswers(): Answers {
     Q20: { first: "sys_capa", second: "sys_delivery" },
     "Q20-1": "q20_1_defect",
     "Q20-2": "pref_qms",
-    "Q20-3": "pref_saas",
     D1: "2",
     D3: ["1", "3"],
     D4: "d4_no",
