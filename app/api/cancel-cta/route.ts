@@ -1,15 +1,18 @@
+import { getSupabaseServerConfig } from "@/lib/supabase-server";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const CTA_TYPES = new Set(["free_diagnosis", "consulting", "poc"]);
 
 export async function DELETE(request: Request) {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-
-  if (!serviceKey || !supabaseUrl) {
+  const config = getSupabaseServerConfig();
+  if (!config || config.mode !== "service_role") {
     return NextResponse.json(
-      { cancelled: false, error: "서버 설정이 완료되지 않았습니다." },
+      {
+        cancelled: false,
+        error:
+          "신청 해제 기능을 사용하려면 SUPABASE_SERVICE_ROLE_KEY 설정이 필요합니다.",
+      },
       { status: 503 }
     );
   }
@@ -34,7 +37,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const admin = createClient(supabaseUrl, serviceKey);
+  const admin = createClient(config.url, config.key);
   const { error } = await admin
     .from("cta_requests")
     .delete()

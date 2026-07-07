@@ -68,6 +68,8 @@ export type CtaPayload = {
   cta_type: CtaType;
   email: string;
   company: string | null;
+  contact_name?: string | null;
+  job_title?: string | null;
   phone: string | null;
   score: number;
   grade_code: string;
@@ -85,6 +87,12 @@ export async function submitCtaRequest(
         submission_uid: payload.submission_uid,
         cta_type: payload.cta_type,
         phone: payload.phone ?? undefined,
+        email: payload.email,
+        company: payload.company,
+        contact_name: payload.contact_name ?? undefined,
+        job_title: payload.job_title ?? undefined,
+        score: payload.score,
+        grade_code: payload.grade_code,
       }),
     });
     const data = (await res.json()) as { saved?: boolean; error?: string };

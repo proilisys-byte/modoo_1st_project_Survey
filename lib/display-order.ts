@@ -18,12 +18,14 @@ export type CDisplayOrder = {
   C_pain: string[];
 };
 
-/** P14~P18 고정 순서 + C_ATT를 5번째(1-indexed) 고정 위치에 삽입 */
+/** P14~P18 고정 순서 + C_ATT(19번)를 P18(18번) 뒤에 배치 */
+export const CANONICAL_C_PAIN_ORDER: string[] = [
+  ...PAIN_QUESTION_IDS,
+  ATTENTION_QUESTION_ID,
+];
+
 export function buildSectionCPainOrder(): string[] {
-  const pain: string[] = [...PAIN_QUESTION_IDS];
-  const order: string[] = [...pain];
-  order.splice(4, 0, ATTENTION_QUESTION_ID);
-  return order;
+  return [...CANONICAL_C_PAIN_ORDER];
 }
 
 export function createPainDisplayOrder(): CDisplayOrder {
@@ -39,7 +41,10 @@ export function createDisplayOrder(partial?: Partial<CDisplayOrder>): CDisplayOr
 export function ensureDisplayOrder(
   current: CDisplayOrder | null | undefined
 ): CDisplayOrder {
-  if (current?.C_pain?.length === 6) {
+  if (
+    current?.C_pain?.length === CANONICAL_C_PAIN_ORDER.length &&
+    current.C_pain.every((id, i) => id === CANONICAL_C_PAIN_ORDER[i])
+  ) {
     return { C_pain: current.C_pain };
   }
   return createDisplayOrder(current ?? undefined);

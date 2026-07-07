@@ -287,6 +287,8 @@ export default function SurveyApp() {
       cta_type: ctaType,
       email: contact.email.trim(),
       company: contact.company.trim() || null,
+      contact_name: contact.name.trim() || null,
+      job_title: contact.jobTitle.trim() || null,
       phone: phone.trim() || contact.phone.trim() || null,
       score: result.total,
       grade_code: result.gradeCode,

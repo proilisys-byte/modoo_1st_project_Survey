@@ -250,7 +250,7 @@ export const SECTIONS: Section[] = [
       {
         id: "B1",
         type: "single",
-        title: "고객 Audit·ISO 사후심사 횟수는?",
+        title: "지난 1년간, 고객사 Audit(수검) 또는 ISO 사후심사 횟수는?",
         required: true,
         options: [
           { value: "1", label: "없음" },
@@ -308,7 +308,8 @@ export const SECTIONS: Section[] = [
       {
         id: "B3",
         type: "single",
-        title: "출하 불합격·고객 클레임(반품·선별·라인스톱 포함) 건수는?",
+        title:
+          "지난 1년간 출하 불합격·고객 클레임(반품·선별·라인스톱 포함) 건수는?",
         required: true,
         options: [
           { value: "1", label: "없음" },
@@ -723,7 +724,9 @@ export const SECTIONS: Section[] = [
       {
         id: "F29-1",
         type: "multi",
-        title: "본 도입·유료 전환 조건 (해당 항목 모두 선택)",
+        title: "본 도입·유료 전환 조건 (상위 3개 선택)",
+        note: "선택 순서대로 1순위·2순위·3순위가 기록됩니다.",
+        exact: 3,
         required: true,
         showIf: { questionId: "F29", anyOf: ["2", "3"] },
         options: [

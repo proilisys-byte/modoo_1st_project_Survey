@@ -2,7 +2,7 @@
  * findFirstUnansweredRequired — v03 정당한 생략·선택 항목은 제출 허용
  * 실행: npm run verify:submit
  */
-import { createPainDisplayOrder, type CDisplayOrder } from "../lib/display-order";
+import { createPainDisplayOrder, CANONICAL_C_PAIN_ORDER, type CDisplayOrder } from "../lib/display-order";
 import { findFirstUnansweredRequired } from "../lib/question-utils";
 import type { Answers } from "../lib/scoring";
 
@@ -64,6 +64,11 @@ function completeSurveyAnswers(): Answers {
 }
 
 const displayOrder: CDisplayOrder = createPainDisplayOrder();
+
+assert(
+  displayOrder.C_pain.every((id, i) => id === CANONICAL_C_PAIN_ORDER[i]),
+  "section C order must be P14~P18 then C_ATT (18=P18, 19=C_ATT)"
+);
 
 const attOnlyFreq = completeSurveyAnswers();
 assert(
