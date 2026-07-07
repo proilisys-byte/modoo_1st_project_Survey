@@ -26,6 +26,7 @@ import {
   type SavedContact,
 } from "@/lib/survey-storage";
 import { submitCtaRequest, submitResponse, type CtaType } from "@/lib/supabase";
+import { cancelCtaRequest } from "@/lib/cancel-cta";
 import { sendReportEmail } from "@/lib/send-report";
 import { resendReportEmail } from "@/lib/resend-report";
 import { getQuestionDisplayLabel } from "@/lib/question-display-numbers";
@@ -216,12 +217,17 @@ export default function SurveyApp() {
     const startedAtIso = startedAt ? new Date(startedAt).toISOString() : null;
     const phoneTrimmed = contact.phone.trim();
 
-    const emailRes = await sendReportEmail({
+    const emailPayload = {
       to: contact.email.trim(),
       company: contact.company.trim() || null,
       result: diagnosis,
-    });
-    setEmailSent(emailRes.sent);
+    };
+
+    let emailRes = await sendReportEmail(emailPayload);
+    if (!emailRes.sent) {
+      await new Promise((r) => setTimeout(r, 1200));
+      emailRes = await sendReportEmail(emailPayload);
+    }
 
     const res = await submitResponse({
       submission_uid: uid,
@@ -250,6 +256,14 @@ export default function SurveyApp() {
       c_display_order: displayOrder,
       result_snapshot: resultSnapshot,
     });
+
+    if (!emailRes.sent && res.saved) {
+      await new Promise((r) => setTimeout(r, 800));
+      const resend = await resendReportEmail(uid, emailPayload);
+      if (resend.sent) emailRes = { sent: true, status: "sent" };
+    }
+
+    setEmailSent(emailRes.sent);
     setSaved(res.saved);
     setSaveError(res.error);
     setResult(diagnosis);
@@ -274,6 +288,16 @@ export default function SurveyApp() {
     });
   };
 
+  const handleCtaCancel = async (ctaType: CtaType) => {
+    if (!submissionUid) {
+      return { cancelled: false, error: "응답 정보가 없습니다." };
+    }
+    return cancelCtaRequest({
+      submission_uid: submissionUid,
+      cta_type: ctaType,
+    });
+  };
+
   // ── 결과 ──
   if (step === RESULT_STEP && result) {
     return (
@@ -285,14 +309,17 @@ export default function SurveyApp() {
         saveError={saveError}
         emailSent={emailSent}
         submissionUid={submissionUid}
-        onResendReport={async () =>
-          resendReportEmail(submissionUid, {
+        onResendReport={async () => {
+          const res = await resendReportEmail(submissionUid, {
             to: contact.email.trim(),
             company: contact.company.trim() || null,
             result,
-          })
-        }
+          });
+          if (res.sent) setEmailSent(true);
+          return res;
+        }}
         onCtaRequest={handleCtaRequest}
+        onCtaCancel={handleCtaCancel}
       />
     );
   }

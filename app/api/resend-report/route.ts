@@ -1,4 +1,5 @@
 import { buildReportEmailHtml, type ReportEmailPayload } from "@/lib/report-email";
+import { getResendConfig } from "@/lib/resend-config";
 import type { DiagnosisResult } from "@/lib/scoring";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
@@ -32,11 +33,11 @@ async function sendViaResend(
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  if (!apiKey || !from) {
+  const config = getResendConfig();
+  if (!config) {
     return NextResponse.json({ sent: false, error: USER_MSG }, { status: 503 });
   }
+  const { apiKey, from } = config;
 
   let body: ReportEmailPayload & { submission_uid?: string };
   try {
@@ -86,8 +87,8 @@ export async function POST(request: Request) {
 
   if (uid) resendAt.set(uid, Date.now());
 
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   if (uid && serviceKey && supabaseUrl) {
     const admin = createClient(supabaseUrl, serviceKey);
     const { error } = await admin

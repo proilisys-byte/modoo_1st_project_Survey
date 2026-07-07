@@ -1,4 +1,5 @@
 import { buildReportEmailHtml, type ReportEmailPayload } from "@/lib/report-email";
+import { getResendConfig } from "@/lib/resend-config";
 import type { DiagnosisResult } from "@/lib/scoring";
 import { NextResponse } from "next/server";
 
@@ -29,10 +30,8 @@ async function sendViaResend(
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-
-  if (!apiKey || !from) {
+  const config = getResendConfig();
+  if (!config) {
     console.error("send-report: RESEND_API_KEY or EMAIL_FROM not configured");
     return NextResponse.json(
       { sent: false, error: USER_FACING_ERROR },
@@ -68,7 +67,13 @@ export async function POST(request: Request) {
     if (attempt > 0) {
       await new Promise((r) => setTimeout(r, 1000));
     }
-    const outcome = await sendViaResend(apiKey, from, to, html, subject);
+    const outcome = await sendViaResend(
+      config.apiKey,
+      config.from,
+      to,
+      html,
+      subject
+    );
     if (outcome.ok) {
       return NextResponse.json({ sent: true });
     }

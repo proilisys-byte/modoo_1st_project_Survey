@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DiagnosisResult } from "@/lib/scoring";
 import type { CtaType } from "@/lib/supabase";
 import { WaferMark } from "./ui";
@@ -42,6 +42,7 @@ export default function ResultView({
   submissionUid,
   onResendReport,
   onCtaRequest,
+  onCtaCancel,
 }: {
   result: DiagnosisResult;
   email: string;
@@ -51,9 +52,13 @@ export default function ResultView({
   emailSent: boolean;
   submissionUid: string;
   onResendReport: () => Promise<{ sent: boolean; rateLimited?: boolean }>;
-  onCtaRequest: (    ctaType: CtaType,
+  onCtaRequest: (
+    ctaType: CtaType,
     phone: string
   ) => Promise<{ saved: boolean; error?: string }>;
+  onCtaCancel: (
+    ctaType: CtaType
+  ) => Promise<{ cancelled: boolean; error?: string }>;
 }) {
   const [phone, setPhone] = useState(initialPhone);
   const [ctaState, setCtaState] = useState<Record<CtaType, CtaState>>({
@@ -65,6 +70,19 @@ export default function ResultView({
   const [resendState, setResendState] = useState<
     "idle" | "loading" | "done" | "limited"
   >("idle");
+  const autoResendDone = useRef(false);
+
+  useEffect(() => {
+    if (!saved || emailSent || !submissionUid || autoResendDone.current) return;
+    autoResendDone.current = true;
+    (async () => {
+      setResendState("loading");
+      const res = await onResendReport();
+      if (res.rateLimited) setResendState("limited");
+      else if (res.sent) setResendState("done");
+      else setResendState("idle");
+    })();
+  }, [saved, emailSent, submissionUid, onResendReport]);
 
   const handleResend = async () => {
     setResendState("loading");
@@ -73,9 +91,21 @@ export default function ResultView({
     else if (res.sent) setResendState("done");
     else setResendState("idle");
   };
-  const requestCta = async (type: CtaType) => {
+  const toggleCta = async (type: CtaType) => {
+    const applied = ctaState[type] === "done";
     setCtaState((s) => ({ ...s, [type]: "loading" }));
     setCtaError(undefined);
+
+    if (applied) {
+      const res = await onCtaCancel(type);
+      setCtaState((s) => ({
+        ...s,
+        [type]: res.cancelled ? "idle" : "done",
+      }));
+      if (!res.cancelled) setCtaError(res.error);
+      return;
+    }
+
     const res = await onCtaRequest(type, phone);
     setCtaState((s) => ({ ...s, [type]: res.saved ? "done" : "error" }));
     if (!res.saved) setCtaError(res.error);
@@ -195,7 +225,8 @@ export default function ResultView({
       <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
         <h2 className="font-bold">다음 단계로 진행해 보세요</h2>
         <p className="mt-1 text-xs text-ink-500">
-          아래에서 원하는 지원을 신청하시면 담당자가 순차적으로 연락드립니다.
+          아래에서 원하는 지원을 신청하시면 담당자가 순차적으로 연락드립니다. 신청
+          후 다시 클릭하면 신청을 해제할 수 있습니다.
         </p>
 
         <div className="mt-4">
@@ -243,20 +274,20 @@ export default function ResultView({
                 <p className="mb-3 text-sm text-ink-500">{item.desc}</p>
                 <button
                   type="button"
-                  onClick={() => requestCta(item.type)}
-                  disabled={state === "loading" || done}
-                  className={`w-full rounded-lg py-3 text-sm font-bold transition-colors disabled:opacity-100 ${
+                  onClick={() => toggleCta(item.type)}
+                  disabled={state === "loading"}
+                  className={`w-full rounded-lg py-3 text-sm font-bold transition-colors disabled:opacity-70 ${
                     done
-                      ? "bg-emerald-500 text-white"
+                      ? "bg-emerald-500 text-white hover:bg-emerald-600"
                       : item.primary
                         ? "bg-brand-600 text-white hover:bg-brand-700"
                         : "border-2 border-brand-600 text-brand-700 hover:bg-brand-50"
                   }`}
                 >
                   {done
-                    ? "✓ 신청이 접수되었습니다"
+                    ? "✓ 신청됨 — 클릭하면 신청 해제"
                     : state === "loading"
-                      ? "신청 중..."
+                      ? "처리 중..."
                       : `${item.title}하기`}
                 </button>
               </div>
@@ -266,8 +297,8 @@ export default function ResultView({
 
         {ctaError && (
           <p className="mt-3 text-sm text-amber-700">
-            신청 저장에 실패했습니다{ctaError ? ` — ${ctaError}` : ""}. 잠시 후
-            다시 시도해 주세요.
+            신청·해제 처리에 실패했습니다{ctaError ? ` — ${ctaError}` : ""}. 잠시
+            후 다시 시도해 주세요.
           </p>
         )}
       </div>
