@@ -817,7 +817,9 @@ export const SECTIONS: Section[] = [
       {
         id: "F32-1",
         type: "multi",
-        title: "PoC에서 반드시 검증할 KPI (해당 항목 모두 선택)",
+        title: "PoC에서 반드시 검증할 KPI (2개 선택)",
+        note: "선택 순서대로 1순위·2순위가 기록됩니다.",
+        exact: 2,
         required: true,
         showIf: { questionId: "F32", anyOf: ["2", "3"] },
         options: [

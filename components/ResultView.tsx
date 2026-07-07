@@ -77,10 +77,21 @@ export default function ResultView({
     autoResendDone.current = true;
     (async () => {
       setResendState("loading");
-      const res = await onResendReport();
-      if (res.rateLimited) setResendState("limited");
-      else if (res.sent) setResendState("done");
-      else setResendState("idle");
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) {
+          await new Promise((r) => setTimeout(r, 2000));
+        }
+        const res = await onResendReport();
+        if (res.rateLimited) {
+          setResendState("limited");
+          return;
+        }
+        if (res.sent) {
+          setResendState("done");
+          return;
+        }
+      }
+      setResendState("idle");
     })();
   }, [saved, emailSent, submissionUid, onResendReport]);
 

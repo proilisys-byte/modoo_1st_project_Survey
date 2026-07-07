@@ -321,6 +321,7 @@ export default function SurveyApp() {
             to: contact.email.trim(),
             company: contact.company.trim() || null,
             result,
+            submissionUid,
           });
           if (res.sent) setEmailSent(true);
           return res;
