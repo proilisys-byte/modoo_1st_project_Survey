@@ -1,11 +1,12 @@
 import type { ReportEmailPayload } from "@/lib/report-email";
+import { sendReportByUid } from "@/lib/send-report-by-uid";
 
 const RESEND_KEY = "proali_resend_at_";
 
 /** T-18: 15분당 1회 재발송 */
 export async function resendReportEmail(
   submissionUid: string,
-  payload: ReportEmailPayload
+  payload?: Pick<ReportEmailPayload, "to" | "company" | "result">
 ): Promise<{ sent: boolean; rateLimited?: boolean }> {
   const key = `${RESEND_KEY}${submissionUid}`;
   try {
@@ -18,6 +19,18 @@ export async function resendReportEmail(
   }
 
   try {
+    const uidRes = await sendReportByUid(submissionUid, payload?.to?.trim());
+    if (uidRes.sent) {
+      try {
+        localStorage.setItem(key, String(Date.now()));
+      } catch {
+        // 무시
+      }
+      return { sent: true };
+    }
+
+    if (!payload) return { sent: false };
+
     const res = await fetch("/api/resend-report", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

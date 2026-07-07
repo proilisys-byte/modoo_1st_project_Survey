@@ -27,6 +27,7 @@ import {
 } from "@/lib/survey-storage";
 import { submitCtaRequest, submitResponse, type CtaType } from "@/lib/supabase";
 import { cancelCtaRequest } from "@/lib/cancel-cta";
+import { sendReportByUid } from "@/lib/send-report-by-uid";
 import { sendReportEmail } from "@/lib/send-report";
 import { resendReportEmail } from "@/lib/resend-report";
 import { getQuestionDisplayLabel } from "@/lib/question-display-numbers";
@@ -227,12 +228,6 @@ export default function SurveyApp() {
       submissionUid: uid,
     };
 
-    let emailRes = await sendReportEmail(emailPayload);
-    if (!emailRes.sent) {
-      await new Promise((r) => setTimeout(r, 1200));
-      emailRes = await sendReportEmail(emailPayload);
-    }
-
     const res = await submitResponse({
       submission_uid: uid,
       answers,
@@ -255,17 +250,26 @@ export default function SurveyApp() {
       submitted_at: submittedAt,
       consent_required: contact.consentRequired,
       marketing_opt_in: contact.marketingOptIn,
-      email_status: emailRes.status,
+      email_status: "pending",
       psm_inconsistent: isPsmInconsistent(answers),
       scoring_config_version: SCORING_CONFIG_VERSION,
       c_display_order: displayOrder,
       result_snapshot: resultSnapshot,
     });
 
-    if (!emailRes.sent && res.saved) {
-      await new Promise((r) => setTimeout(r, 800));
-      const resend = await resendReportEmail(uid, emailPayload);
-      if (resend.sent) emailRes = { sent: true, status: "sent" };
+    let emailRes: { sent: boolean; status: "sent" | "failed" } = {
+      sent: false,
+      status: "failed",
+    };
+    if (res.saved) {
+      emailRes = await sendReportByUid(uid, emailPayload.to);
+      if (!emailRes.sent) {
+        await new Promise((r) => setTimeout(r, 1200));
+        emailRes = await sendReportByUid(uid, emailPayload.to);
+      }
+      if (!emailRes.sent) {
+        emailRes = await sendReportEmail(emailPayload);
+      }
     }
 
     setEmailSent(emailRes.sent);
@@ -321,7 +325,6 @@ export default function SurveyApp() {
             to: contact.email.trim(),
             company: contact.company.trim() || null,
             result,
-            submissionUid,
           });
           if (res.sent) setEmailSent(true);
           return res;

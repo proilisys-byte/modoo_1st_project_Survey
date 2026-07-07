@@ -37,7 +37,7 @@ const ARCH_OPTIONS = [
   { value: "pref_erp", label: "기존 ERP 품질 모듈 확장" },
   { value: "pref_mes", label: "MES 연계(현장 실적·불량)" },
   { value: "pref_qms", label: "독립 QMS + ERP/MES API" },
-  { value: "pref_saas", label: "독립 SaaS(클라oud) 구독" },
+  { value: "pref_saas", label: "독립 SaaS(클라우드) 구독" },
   { value: "pref_onprem", label: "사내 서버(온프레)" },
   { value: "pref_excel", label: "엑셀·그룹웨어 고도화" },
 ];
@@ -88,7 +88,7 @@ const F28_BARRIER_FOLLOWUPS: {
     title: "IT·보안·망분리 — 구체적 우려는?",
     options: [
       { value: "f28_1_sec_air", label: "망분리·폐쇄망 정책" },
-      { value: "f28_1_sec_cloud", label: "클라oud·SaaS 사용 제한" },
+      { value: "f28_1_sec_cloud", label: "클라우드·SaaS 사용 제한" },
       { value: "f28_1_sec_audit", label: "보안 Audit·인증 부담" },
     ],
   },
@@ -645,7 +645,7 @@ export const SECTIONS: Section[] = [
         id: "E26",
         type: "single",
         title:
-          "품질·공정 데이터를 외부(클라oud·SaaS·AI)에 올릴 때 가장 큰 제약은?",
+          "품질·공정 데이터를 외부(클라우드·SaaS·AI)에 올릴 때 가장 큰 제약은?",
         required: true,
         options: [
           { value: "e26_contract", label: "고객 계약·반출 제한" },

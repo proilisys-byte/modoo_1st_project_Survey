@@ -1,51 +1,51 @@
-import { buildReportEmailHtml, type ReportEmailPayload } from "@/lib/report-email";
-import { getResendConfig } from "@/lib/resend-config";
+import type { ReportEmailPayload } from "@/lib/report-email";
+import {
+  buildDiagnosisForEmail,
+  deliverReportEmail,
+  REPORT_EMAIL_USER_ERROR,
+  type SurveyResponseEmailRow,
+} from "@/lib/send-report-core";
+import { getSupabaseServerConfig } from "@/lib/supabase-server";
 import type { DiagnosisResult } from "@/lib/scoring";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const USER_MSG =
-  "리포트 발송이 지연되고 있습니다. 응답은 안전하게 저장되었으며, 준비되는 대로 입력하신 이메일로 보내드립니다.";
 const RATE_LIMIT_MS = 15 * 60 * 1000;
 
 const resendAt = new Map<string, number>();
 
-async function sendViaResend(
-  apiKey: string,
-  from: string,
-  to: string,
-  html: string,
-  subject: string
-): Promise<boolean> {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ from, to: [to], subject, html }),
-  });
-  if (!res.ok) {
-    console.error("resend-report:", await res.text().catch(() => res.status));
+async function loadRowByUid(uid: string): Promise<SurveyResponseEmailRow | null> {
+  const config = getSupabaseServerConfig();
+  if (!config || config.mode !== "service_role") return null;
+
+  const admin = createClient(config.url, config.key);
+  const { data, error } = await admin
+    .from("survey_responses")
+    .select(
+      "email, company, grade, grade_code, answers, result_snapshot, scoring_config_version"
+    )
+    .eq("submission_uid", uid)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error("resend-report: db read failed", error);
+    return null;
   }
-  return res.ok;
+  return data as SurveyResponseEmailRow;
 }
 
 export async function POST(request: Request) {
-  const config = getResendConfig();
-  if (!config) {
-    return NextResponse.json({ sent: false, error: USER_MSG }, { status: 503 });
-  }
-  const { apiKey, from } = config;
-
   let body: ReportEmailPayload & { submission_uid?: string };
   try {
     body = (await request.json()) as ReportEmailPayload & {
       submission_uid?: string;
     };
   } catch {
-    return NextResponse.json({ sent: false, error: USER_MSG }, { status: 400 });
+    return NextResponse.json(
+      { sent: false, error: REPORT_EMAIL_USER_ERROR },
+      { status: 400 }
+    );
   }
 
   const uid = body.submission_uid?.trim() ?? "";
@@ -59,39 +59,52 @@ export async function POST(request: Request) {
     }
   }
 
-  const to = body.to?.trim() ?? "";
+  let to = body.to?.trim() ?? "";
+  let company = body.company ?? null;
+  let result = body.result as DiagnosisResult | undefined;
+
+  if (uid && (!result || typeof result.total !== "number")) {
+    const row = await loadRowByUid(uid);
+    if (row) {
+      to = to || row.email?.trim() || "";
+      company = company ?? row.company;
+      result = buildDiagnosisForEmail(row);
+    }
+  }
+
   if (!EMAIL_RE.test(to)) {
-    return NextResponse.json({ sent: false, error: USER_MSG }, { status: 400 });
+    return NextResponse.json(
+      { sent: false, error: REPORT_EMAIL_USER_ERROR },
+      { status: 400 }
+    );
   }
 
-  const result = body.result as DiagnosisResult | undefined;
   if (!result || typeof result.total !== "number") {
-    return NextResponse.json({ sent: false, error: USER_MSG }, { status: 400 });
+    return NextResponse.json(
+      { sent: false, error: REPORT_EMAIL_USER_ERROR },
+      { status: 400 }
+    );
   }
 
-  const html = buildReportEmailHtml({
-    company: body.company ?? null,
+  const outcome = await deliverReportEmail({
+    to,
+    company,
     result,
     submissionUid: uid || null,
   });
-  const subject = `[PRO ALI SMART] ISO 실행력 진단 리포트 — ${result.total}점 (${result.gradeName})`;
 
-  let sent = await sendViaResend(apiKey, from, to, html, subject);
-  if (!sent) {
-    await new Promise((r) => setTimeout(r, 1000));
-    sent = await sendViaResend(apiKey, from, to, html, subject);
-  }
-
-  if (!sent) {
-    return NextResponse.json({ sent: false, error: USER_MSG }, { status: 502 });
+  if (!outcome.sent) {
+    return NextResponse.json(
+      { sent: false, error: REPORT_EMAIL_USER_ERROR },
+      { status: outcome.detail === "resend_not_configured" ? 503 : 502 }
+    );
   }
 
   if (uid) resendAt.set(uid, Date.now());
 
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  if (uid && serviceKey && supabaseUrl) {
-    const admin = createClient(supabaseUrl, serviceKey);
+  const config = getSupabaseServerConfig();
+  if (uid && config?.mode === "service_role") {
+    const admin = createClient(config.url, config.key);
     const { error } = await admin
       .from("survey_responses")
       .update({ email_status: "sent" })
