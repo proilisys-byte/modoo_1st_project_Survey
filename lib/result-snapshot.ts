@@ -66,6 +66,7 @@ export function buildResultSnapshot(
 }
 
 export function diagnosisFromSnapshot(snapshot: ResultSnapshot): DiagnosisResult {
+  const top3 = Array.isArray(snapshot.top3_computed) ? snapshot.top3_computed : [];
   return {
     total: snapshot.total,
     gradeCode: snapshot.grade_code as DiagnosisResult["gradeCode"],
@@ -73,17 +74,17 @@ export function diagnosisFromSnapshot(snapshot: ResultSnapshot): DiagnosisResult
     gradeInternalName: "",
     actionPlan: "",
     axes: [
-      { name: "표준 실행력", score: snapshot.d1, max: 30 },
-      { name: "부적합·CAPA 성숙도", score: snapshot.d2, max: 30 },
-      { name: "부서 협업·환류", score: snapshot.d3, max: 20 },
-      { name: "경영 가시성·데이터 관리", score: snapshot.d4, max: 20 },
+      { name: "표준 실행력", score: snapshot.d1 ?? 0, max: 30 },
+      { name: "부적합·CAPA 성숙도", score: snapshot.d2 ?? 0, max: 30 },
+      { name: "부서 협업·환류", score: snapshot.d3 ?? 0, max: 20 },
+      { name: "경영 가시성·데이터 관리", score: snapshot.d4 ?? 0, max: 20 },
     ],
-    risks: snapshot.top3_computed.map((t) => ({
+    risks: top3.map((t) => ({
       id: t.id,
       short: t.short,
       risk: PAIN_LABELS[t.id]?.risk ?? "",
       painScore: t.burden,
     })),
-    painScores: snapshot.pain_scores,
+    painScores: snapshot.pain_scores ?? {},
   };
 }

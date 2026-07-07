@@ -15,7 +15,12 @@ export function resolveResult(
   gradeNames?: Pick<DiagnosisResult, "gradeName" | "gradeInternalName" | "actionPlan">
 ): ResolvedResult {
   const snap = row.result_snapshot;
-  if (snap && snap.recomputed === false && typeof snap.total === "number") {
+  if (
+    snap &&
+    snap.recomputed === false &&
+    typeof snap.total === "number" &&
+    Array.isArray(snap.top3_computed)
+  ) {
     const diagnosis = diagnosisFromSnapshot(snap);
     if (gradeNames) {
       diagnosis.gradeName = gradeNames.gradeName;
