@@ -1,6 +1,5 @@
 /**
- * v3 smoke: answers_display 라벨 변환 + showIf 분기
- * 실행: npx tsx scripts/verify-v3-smoke.ts
+ * v03 smoke: answers_display 라벨 변환 + showIf 분기
  */
 import { buildAnswersDisplay } from "../lib/answers-display";
 import { findFirstUnansweredRequired } from "../lib/question-utils";
@@ -17,37 +16,25 @@ function assert(cond: boolean, msg: string): void {
 const answers: Record<string, unknown> = {
   A1: "0",
   A5: "6",
-  C9: ["C1", "C2", "C3"],
-  "C9-1_C1": "c9_1_std",
-  "C9-2": "c9_2_audit",
-  F4: { f4_a: 1, f4_b: 2, f4_c: 3, f4_d: 4 },
-  "F0-3": "pref_erp",
-  "F0-3-2": "pref_mes",
-  E2: "1",
-  "E2-1_budget": "e2_1_roi",
+  Q20: { first: "sys_capa", second: "sys_delivery" },
+  "Q20-1": "q20_1_defect",
+  "Q20-2": "pref_mes",
+  "Q20-3": "pref_saas",
+  F28: ["f28_roi", "f28_staff", "f28_data"],
+  "F28-1_f28_roi": "f28_1_roi_effect",
+  E25: { quality: "e25_excel", production: "e25_mes", delivery: "e25_erp" },
 };
 
 const display = buildAnswersDisplay(answers);
-assert(SURVEY_VERSION === "v3", "SURVEY_VERSION must be v3");
-assert(
-  String(display.A1).includes("반도체 제조"),
-  "A1 should display Korean label"
-);
-assert(
-  String(display.A5).includes("영업"),
-  "A5 should include sales/marketing option label"
-);
-assert(
-  String(display.C9).includes("1순위"),
-  "C9 should show rank order in display"
-);
-assert(
-  String(display["F0-3-2"]).includes("MES"),
-  "F0-3-2 should show label text"
-);
+assert(SURVEY_VERSION === "v03", "SURVEY_VERSION must be v03");
+assert(String(display.A1).includes("반도체 제조"), "A1 should display Korean label");
+assert(String(display.A5).includes("영업"), "A5 should include sales/marketing option label");
+assert(String(display.Q20).includes("1순위"), "Q20 should show rank order in display");
+assert(String(display["Q20-2"]).includes("MES"), "Q20-2 should show label text");
+assert(String(display.E25).includes("품질"), "E25 should show matrix row labels");
 
 const order = createPainDisplayOrder();
 const missing = findFirstUnansweredRequired(answers, order);
 assert(missing !== null, "partial answers should still have missing fields");
 
-console.log("OK: v3 smoke — answers_display labels + version");
+console.log("OK: v03 smoke — answers_display labels + version");

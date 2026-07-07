@@ -367,6 +367,89 @@ export default function QuestionBlock({
         </div>
       )}
 
+      {q.type === "rankPick" && (
+        <div className="space-y-5">
+          {(["first", "second"] as const).map((slot, idx) => {
+            const rp = (answers[q.id] ?? {}) as { first?: string; second?: string };
+            const selected = rp[slot];
+            const otherSlot = slot === "first" ? rp.second : rp.first;
+            return (
+              <div key={slot}>
+                <p className="mb-2 text-sm font-medium text-ink-700">
+                  {idx + 1}순위
+                </p>
+                <div className="space-y-2">
+                  {q.options.map((op) => {
+                    const taken = otherSlot === op.value;
+                    const isSelected = selected === op.value;
+                    return (
+                      <OptionCard
+                        key={op.value}
+                        selected={isSelected}
+                        onClick={() => {
+                          if (taken && !isSelected) return;
+                          onAnswer(q.id, { ...rp, [slot]: op.value });
+                        }}
+                      >
+                        {op.label}
+                      </OptionCard>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {q.type === "singleMatrix" && (
+        <div className="space-y-5 overflow-x-auto">
+          <table className="w-full min-w-[640px] border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className="p-2 text-left font-semibold text-ink-700">영역</th>
+                {q.options.map((op) => (
+                  <th
+                    key={op.value}
+                    className="p-2 text-center text-xs font-medium text-ink-600"
+                  >
+                    {op.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {q.rows.map((row) => {
+                const m = (answers[q.id] ?? {}) as Record<string, string>;
+                return (
+                  <tr key={row.id} className="border-t border-slate-100">
+                    <td className="p-2 font-medium text-ink-700">{row.label}</td>
+                    {q.options.map((op) => (
+                      <td key={op.value} className="p-1 text-center">
+                        <button
+                          type="button"
+                          aria-pressed={m[row.id] === op.value}
+                          onClick={() =>
+                            onAnswer(q.id, { ...m, [row.id]: op.value })
+                          }
+                          className={`h-9 w-9 rounded-lg border-2 text-xs font-bold transition-colors ${
+                            m[row.id] === op.value
+                              ? "border-brand-600 bg-brand-600 text-white"
+                              : "border-slate-200 bg-white text-ink-500 hover:border-brand-300"
+                          }`}
+                        >
+                          ●
+                        </button>
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <ErrorText show={unanswered} />
     </div>
   );

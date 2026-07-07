@@ -1,63 +1,46 @@
-/** 섹션 C Pain 항목 id (C1~C8) — 내부 key 불변 */
+/** 섹션 C Pain 항목 id (P14~P18) */
 export const PAIN_QUESTION_IDS = [
-  "C1",
-  "C2",
-  "C3",
-  "C4",
-  "C5",
-  "C6",
-  "C7",
-  "C8",
+  "P14",
+  "P15",
+  "P16",
+  "P17",
+  "P18",
 ] as const;
 
 export const ATTENTION_QUESTION_ID = "C_ATT";
-export const TOP3_QUESTION_ID = "C9";
+
+/** Q20 시스템 우선순위 — 채점 제외, 탐색용 */
+export const SYSTEM_RANK_QUESTION_ID = "Q20";
 
 /** DB c_display_order jsonb 구조 */
 export type CDisplayOrder = {
-  /** C1~C8 + C_ATT 표시 순서 (C9 제외) */
+  /** P14~P18 + C_ATT 표시 순서 */
   C_pain: string[];
-  /** C9 보기 value(C1~C8) 표시 순서 — T-12 */
-  C9_options?: string[];
 };
 
-/** C1~C8 고정 순서 + C_ATT를 5번째(1-indexed) 고정 위치에 삽입 */
+/** P14~P18 고정 순서 + C_ATT를 5번째(1-indexed) 고정 위치에 삽입 */
 export function buildSectionCPainOrder(): string[] {
   const pain: string[] = [...PAIN_QUESTION_IDS];
   const order: string[] = [...pain];
-  order.splice(4, 0, ATTENTION_QUESTION_ID); // 0-indexed 4 → 5번째 위치 고정
+  order.splice(4, 0, ATTENTION_QUESTION_ID);
   return order;
-}
-
-/** C9 보기 8개 고정 순서 (value = C1~C8) */
-export function buildC9OptionOrder(): string[] {
-  return [...PAIN_QUESTION_IDS];
 }
 
 export function createPainDisplayOrder(): CDisplayOrder {
   return { C_pain: buildSectionCPainOrder() };
 }
 
-export function ensureC9OptionOrder(order: CDisplayOrder): CDisplayOrder {
-  if (order.C9_options?.length === PAIN_QUESTION_IDS.length) return order;
-  return { ...order, C9_options: buildC9OptionOrder() };
-}
-
 export function createDisplayOrder(partial?: Partial<CDisplayOrder>): CDisplayOrder {
-  return ensureC9OptionOrder({
+  return {
     C_pain: partial?.C_pain ?? buildSectionCPainOrder(),
-    C9_options: partial?.C9_options,
-  });
+  };
 }
 
 export function ensureDisplayOrder(
   current: CDisplayOrder | null | undefined
 ): CDisplayOrder {
-  if (current?.C_pain?.length === 9) {
-    return {
-      C_pain: current.C_pain,
-      C9_options: current.C9_options ?? buildC9OptionOrder(),
-    };
+  if (current?.C_pain?.length === 6) {
+    return { C_pain: current.C_pain };
   }
   return createDisplayOrder(current ?? undefined);
 }

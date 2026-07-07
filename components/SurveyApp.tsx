@@ -6,12 +6,10 @@ import { buildAnswersDisplay } from "@/lib/answers-display";
 import { SECTIONS, FREQ_LABELS, SEV_LABELS, type Question } from "@/lib/questions";
 import {
   createPainDisplayOrder,
-  ensureC9OptionOrder,
   type CDisplayOrder,
 } from "@/lib/display-order";
 import {
   getOrderedSectionCQuestions,
-  getShuffledMultiOptions,
   getVisibleQuestions,
   isAnswered,
   isPhoneRequired,
@@ -126,23 +124,21 @@ export default function SurveyApp() {
     writeSavedState({ step, answers, startedAt, contact, displayOrder });
   }, [step, answers, startedAt, contact, displayOrder]);
 
-  // T-12: C9 보기 순서 확정 시 state·localStorage 동기화
-  useEffect(() => {
-    if (!displayOrder) return;
-    const next = ensureC9OptionOrder(displayOrder);
-    if (next.C9_options && !displayOrder.C9_options) {
-      setDisplayOrder(next);
-    }
-  }, [displayOrder]);
-
   const onAnswer = useCallback((id: string, value: unknown) => {
     setAnswers((prev) => {
       const next = { ...prev, [id]: value };
-      if (id === "D4_gate" && value === "no") {
-        delete next["D4_pain"];
-      }
       if (id === "B3A" && value === "6") {
         delete next["q10_basis"];
+      }
+      if (id === "Q20") {
+        const rp = value as { first?: string; second?: string };
+        if (rp.first === "sys_tbd") {
+          delete next["Q20-2"];
+          delete next["Q20-3"];
+        }
+      }
+      if (id === "Q20-2" && value === "pref_excel") {
+        delete next["Q20-3"];
       }
       return next;
     });
@@ -190,6 +186,8 @@ export default function SurveyApp() {
   const contactValid =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim()) &&
     contact.consentRequired &&
+    contact.marketingOptIn &&
+    contact.company.trim().length >= 1 &&
     contact.jobTitle.trim().length >= 1 &&
     (!phoneRequired || contact.phone.trim().length >= 9);
 
@@ -323,7 +321,7 @@ export default function SurveyApp() {
           </h1>
           <p className="mt-4 text-[15px] text-ink-700">
             본 진단은 반도체 제조 현장에서 33년간 생산, 품질, 개선 시스템을
-            운영해 온 전문가가 설계했습니다. 약 22~25분 투자로 다음을 확인하실 수
+            운영해 온 전문가가 설계했습니다. 약 12~18분 투자로 다음을 확인하실 수
             있습니다.
             {/* TODO: 유효 응답 50건 축적 시 duration_seconds 중앙값으로 문구 재조정 */}
           </p>
@@ -385,10 +383,10 @@ export default function SurveyApp() {
             onClick={start}
             className="mt-6 w-full rounded-xl bg-brand-600 py-4 text-base font-bold text-white transition-colors hover:bg-brand-700 active:scale-[0.99]"
           >
-            {resumed ? "이어서 진단하기" : "무료 진단 시작하기 (약 22~25분)"}
+            {resumed ? "이어서 진단하기" : "무료 진단 시작하기 (약 12~18분)"}
           </button>
           <p className="mt-3 text-center text-xs text-ink-500">
-            메인 50문항 · 조건부 Deep Dive 포함 · 모바일에서도 편하게 응답하실 수 있습니다
+            메인 32문항 · 조건부 Deep Dive 포함 · 모바일에서도 편하게 응답하실 수 있습니다
           </p>
         </div>
       </div>
@@ -446,10 +444,7 @@ export default function SurveyApp() {
                   htmlFor="contact-company"
                   className="mb-1.5 block text-sm font-semibold"
                 >
-                  회사명{" "}
-                  <span className="font-normal text-xs text-ink-500">
-                    (선택 — 미입력 시 업종 평균과만 비교)
-                  </span>
+                  회사명 <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="contact-company"
@@ -461,6 +456,11 @@ export default function SurveyApp() {
                   placeholder="회사명"
                   className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-[15px] focus:border-brand-500 focus:outline-none"
                 />
+                {showError && contact.company.trim().length < 1 && (
+                  <p className="mt-1.5 text-sm font-medium text-red-600">
+                    회사명을 입력해 주세요.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -558,10 +558,15 @@ export default function SurveyApp() {
                   className="mt-0.5 h-4 w-4 accent-brand-600"
                 />
                 <span className="text-sm text-ink-700">
-                  <span className="font-semibold text-ink-500">[선택]</span>{" "}
+                  <span className="font-semibold text-red-600">[필수]</span>{" "}
                   개선 사례·세미나 등 관련 자료 수신에 동의합니다.
                 </span>
               </label>
+              {showError && !contact.marketingOptIn && (
+                <p className="text-sm font-medium text-red-600">
+                  자료 수신 동의에 체크해 주세요.
+                </p>
+              )}
             </div>
 
             <div className="mt-6 flex gap-3">
@@ -589,20 +594,16 @@ export default function SurveyApp() {
 
   // ── 섹션 A~E ──
   const section = SECTIONS[step - 1];
-  const sectionDisplayOrder =
-    section.id === "C" && displayOrder
-      ? ensureC9OptionOrder(displayOrder)
-      : displayOrder;
   const visibleQuestions = resolveSectionQuestions(
     section.id,
     section.questions,
     answers,
-    sectionDisplayOrder
+    displayOrder
   );
   const ALL_QUESTIONS = SECTIONS.flatMap((s) => s.questions);
   const percent = (step / (CONTACT_STEP + 1)) * 100;
   const psmWarning =
-    section.id === "E" && isPsmInconsistent(answers);
+    section.id === "F" && isPsmInconsistent(answers);
  
   return (
     <div className="pb-16">
@@ -664,10 +665,6 @@ export default function SurveyApp() {
         <div className="space-y-4">
           {visibleQuestions.map((q) => {
             const questionNumber = ALL_QUESTIONS.findIndex((item) => item.id === q.id) + 1;
-            const shuffledOptions =
-              q.id === "C9" && sectionDisplayOrder
-                ? getShuffledMultiOptions(q, sectionDisplayOrder.C9_options)
-                : undefined;
             return (
               <QuestionBlock
                 key={q.id}
@@ -676,7 +673,6 @@ export default function SurveyApp() {
                 answers={answers}
                 showError={showError}
                 onAnswer={onAnswer}
-                shuffledOptions={shuffledOptions}
               />
             );
           })}

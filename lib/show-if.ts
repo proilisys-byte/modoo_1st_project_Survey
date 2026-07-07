@@ -1,4 +1,5 @@
 import type { ShowIf } from "./questions";
+import type { DualAnswer } from "./scoring";
 
 function asStringArray(v: unknown): string[] {
   if (Array.isArray(v)) return v.filter((x): x is string => typeof x === "string");
@@ -8,6 +9,18 @@ function asStringArray(v: unknown): string[] {
 function rankFirst(v: unknown): string | null {
   const arr = asStringArray(v);
   return arr[0] ?? null;
+}
+
+function rankPickFirst(v: unknown): string | null {
+  const rp = v as { first?: string; second?: string } | undefined;
+  return typeof rp?.first === "string" && rp.first.length > 0 ? rp.first : null;
+}
+
+function matrixRowValues(v: unknown): string[] {
+  if (!v || typeof v !== "object") return [];
+  return Object.values(v as Record<string, string>).filter(
+    (x): x is string => typeof x === "string"
+  );
 }
 
 /** 단일 showIf 조건 평가 */
@@ -49,10 +62,31 @@ export function evalShowIf(
     if (typeof ans === "object") return Object.keys(ans as object).length > 0;
     return true;
   }
+  if ("painThreshold" in cond) {
+    const d = ans as DualAnswer | undefined;
+    if (!d || typeof d.freq !== "number") return false;
+    const { freqGte, sevGte } = cond.painThreshold;
+    const freqOk = freqGte !== undefined && d.freq >= freqGte;
+    const sevOk =
+      sevGte !== undefined &&
+      typeof d.sev === "number" &&
+      d.sev >= sevGte;
+    return freqOk || sevOk;
+  }
+  if ("matrixAnyRowAnyOf" in cond) {
+    const rows = matrixRowValues(ans);
+    return rows.some((v) => cond.matrixAnyRowAnyOf.includes(v));
+  }
+  if ("rankPickFirstAnswered" in cond && cond.rankPickFirstAnswered) {
+    return rankPickFirst(ans) !== null;
+  }
+  if ("rankPickFirstNot" in cond) {
+    const first = rankPickFirst(ans);
+    return first !== null && first !== cond.rankPickFirstNot;
+  }
   return true;
 }
 
-/** 복합 showIf (and/or) */
 export type ShowIfRule =
   | ShowIf
   | { and: ShowIfRule[] }

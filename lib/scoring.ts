@@ -1,26 +1,13 @@
-// 설계서 10절 스코어링 로직
-// 10.1 ISO 실행력 점수(100점) · 10.2 Pain Score · 10.4 등급→액션플랜
-//
-// T-14: 채점·벤치마크 제외 문항
-// - C_ATT (주의확인): 도메인 점수·Pain TOP3·pain_scores 모두 제외.
-//   attention_passed(boolean)만 저장 — 빈도 2 선택 여부, 오답이어도 제출 허용.
-// - C9 (TOP3 자가선택): 점수 계산 제외, answers JSON에만 저장.
-//
-// TOP3(computed) 동점 규칙 (burden = freq x sev):
-//   1) burden 내림차순  2) 동점 -> sev 내림차순  3) 동점 -> C1->C8 canonical
-// C_ATT 제외: SCORING_PAIN_IDS(C1~C8) whitelist — C_pain 배열 index/slice 아님.
-// DB 확정(2026-07): C1=1×1(burden 1), C2~C8=2×2(burden 4) → TOP3=C2,C3,C4 정상.
-//   (C1 sev 미저장 가설 기각 — submit 구멍·동점 규칙은 예방 조치로 유지)
+// v03 스코어링 — P14~P18 Pain + B/E25 사실 문항
+// C_ATT: attention_passed만, 채점 제외
+// Q20 이후: 탐색용, 채점 제외
 
 import { PAIN_LABELS } from "./questions";
-import {
-  PAIN_QUESTION_IDS,
-} from "./display-order";
+import { PAIN_QUESTION_IDS } from "./display-order";
 import { resolveGrade, type GradeCode } from "./grade-bands";
 
 export type { GradeCode };
 
-/** 채점·TOP3·pain_scores 대상 — C1~C8 key만 (C_ATT/C9 제외, index 아님) */
 export const SCORING_PAIN_IDS = PAIN_QUESTION_IDS;
 
 export function isScoringPainId(id: string): boolean {
@@ -30,12 +17,8 @@ export function isScoringPainId(id: string): boolean {
 export type DualAnswer = { freq: number; sev: number };
 export type Answers = Record<string, unknown>;
 
-/** 단일 선택 문항의 응답값 → 0(최악)~1(최선) 정규화 매핑 */
 const SINGLE_GOODNESS: Record<string, Record<string, number>> = {
-  // 축 1. 표준 실행력
   B2: { "1": 0, "2": 0.35, "3": 1, "4": 0.5 },
-  // 축 2. 부적합·CAPA 성숙도
-  // v2 상호배타 기간 구간 (v1 key "1"~"3" deprecated — lib/boundaries.ts 7/14/28일 절단)
   B4: {
     b4_v2_lte1w: 1,
     b4_v2_1_2w: 0.75,
@@ -44,19 +27,27 @@ const SINGLE_GOODNESS: Record<string, Record<string, number>> = {
     b4_v2_effect_weak: 0.2,
     b4_v2_not_operated: 0,
   },
-  B5: { "1": 1, "2": 0.75, "3": 0.5, "4": 0.25, "5": 0, "6": 0.4 },
   B6: { "1": 1, "2": 0.6, "3": 0.2, "4": 0 },
-  // 축 4. 경영 가시성·데이터 관리
   B3: { "1": 1, "2": 0.75, "3": 0.4, "4": 0.15, "5": 0, "6": 0.5 },
-  // v2 상호배타 구간 (v1 key 1~6 deprecated — harmonize.ts 참조)
   B7: {
     b7_v2_lt3: 1,
     b7_v2_3to6: 0.7,
     b7_v2_7to11: 0.4,
     b7_v2_ge12: 0.15,
     b7_v2_unknown: 0.3,
+    b7_v2_dedicated: 0.5,
   },
-  D2: { "1": 0.1, "2": 0.3, "3": 0.6, "4": 1, "5": 0.5 },
+};
+
+const E25_GOODNESS: Record<string, number> = {
+  e25_manual: 0.1,
+  e25_excel: 0.3,
+  e25_gw: 0.5,
+  e25_erp: 0.85,
+  e25_mes: 0.85,
+  e25_qms: 1,
+  e25_outsrc: 0.5,
+  e25_unknown: 0.4,
 };
 
 function singleGoodness(answers: Answers, id: string): number | null {
@@ -66,10 +57,17 @@ function singleGoodness(answers: Answers, id: string): number | null {
   return map && v in map ? map[v] : null;
 }
 
+function e25QualityGoodness(answers: Answers): number | null {
+  const e25 = answers["E25"] as Record<string, string> | undefined;
+  const q = e25?.quality;
+  if (!q || typeof q !== "string") return null;
+  return E25_GOODNESS[q] ?? null;
+}
+
 export function painScore(answers: Answers, id: string): number | null {
   const v = answers[id] as DualAnswer | undefined;
   if (!v || typeof v.freq !== "number" || typeof v.sev !== "number") return null;
-  return v.freq * v.sev; // 1~25 burden
+  return v.freq * v.sev;
 }
 
 function painSev(answers: Answers, id: string): number {
@@ -82,7 +80,6 @@ function canonicalPainIndex(id: string): number {
   return i >= 0 ? i : 999;
 }
 
-/** TOP3 burden 정렬 — 동점: sev desc, then C1->C8 */
 export function comparePainBurdenForTop3(
   aId: string,
   aBurden: number,
@@ -127,7 +124,6 @@ export function buildTop3Risks(answers: Answers): RiskItem[] {
     }));
 }
 
-/** Pain Score(1~25) → 0(최악)~1(최선) 역산 */
 function painGoodness(answers: Answers, id: string): number | null {
   const p = painScore(answers, id);
   return p === null ? null : 1 - (p - 1) / 24;
@@ -149,14 +145,6 @@ export type RiskItem = {
   painScore: number;
 };
 
-export type Grade = {
-  min: number;
-  code: GradeCode;
-  internalName: string;
-  name: string;
-  plan: string;
-};
-
 export type DiagnosisResult = {
   total: number;
   gradeCode: GradeCode;
@@ -176,9 +164,8 @@ export function diagnose(answers: Answers): DiagnosisResult {
       score: axisScore(
         [
           singleGoodness(answers, "B2"),
-          painGoodness(answers, "C1"),
-          painGoodness(answers, "C2"),
-          painGoodness(answers, "C5"),
+          painGoodness(answers, "P14"),
+          painGoodness(answers, "P16"),
         ],
         30
       ),
@@ -189,10 +176,8 @@ export function diagnose(answers: Answers): DiagnosisResult {
       score: axisScore(
         [
           singleGoodness(answers, "B4"),
-          singleGoodness(answers, "B5"),
           singleGoodness(answers, "B6"),
-          painGoodness(answers, "C4"),
-          painGoodness(answers, "C6"),
+          painGoodness(answers, "P15"),
         ],
         30
       ),
@@ -200,10 +185,7 @@ export function diagnose(answers: Answers): DiagnosisResult {
     {
       name: "부서 협업·환류",
       max: 20,
-      score: axisScore(
-        [painGoodness(answers, "C3"), painGoodness(answers, "C8")],
-        20
-      ),
+      score: axisScore([painGoodness(answers, "P17")], 20),
     },
     {
       name: "경영 가시성·데이터 관리",
@@ -212,8 +194,8 @@ export function diagnose(answers: Answers): DiagnosisResult {
         [
           singleGoodness(answers, "B3"),
           singleGoodness(answers, "B7"),
-          painGoodness(answers, "C7"),
-          singleGoodness(answers, "D2"),
+          painGoodness(answers, "P18"),
+          e25QualityGoodness(answers),
         ],
         20
       ),
@@ -222,7 +204,6 @@ export function diagnose(answers: Answers): DiagnosisResult {
 
   const total = Math.round(axes.reduce((a, x) => a + x.score, 0));
   const grade = resolveGrade(total);
-
   const painScores = buildPainScores(answers);
   const risks = buildTop3Risks(answers);
 
@@ -238,7 +219,6 @@ export function diagnose(answers: Answers): DiagnosisResult {
   };
 }
 
-/** 주의 확인 문항 통과 여부 — 빈도에서 2를 선택해야 통과 */
 export function attentionPassed(answers: Answers): boolean {
   const v = answers["C_ATT"] as DualAnswer | undefined;
   return v?.freq === 2;

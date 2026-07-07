@@ -3,9 +3,15 @@ import type { DualAnswer } from "./scoring";
 import { SECTIONS } from "./questions";
 import { evalShowIfRule } from "./show-if";
 import {
-  TOP3_QUESTION_ID,
+  ATTENTION_QUESTION_ID,
+  PAIN_QUESTION_IDS,
   type CDisplayOrder,
 } from "./display-order";
+
+const C_PAIN_SET = new Set<string>([
+  ...PAIN_QUESTION_IDS,
+  ATTENTION_QUESTION_ID,
+]);
 
 export function isAnswered(
   q: Question,
@@ -30,7 +36,6 @@ export function isAnswered(
     case "dualScale": {
       const d = v as DualAnswer | undefined;
       if (typeof d?.freq !== "number") return false;
-      // key 기준: C_ATT만 questions.ts sevOptional=true
       if ("sevOptional" in q && q.sevOptional) return true;
       return typeof d.sev === "number";
     }
@@ -45,13 +50,20 @@ export function isAnswered(
       const m = (v ?? {}) as Record<string, number>;
       const ranks = q.items.map((item) => m[item.id]).filter(Boolean);
       if (ranks.length !== q.items.length) return false;
-      const unique = new Set(ranks);
-      return unique.size === q.items.length;
+      return new Set(ranks).size === q.items.length;
+    }
+    case "rankPick": {
+      const rp = v as { first?: string; second?: string } | undefined;
+      if (!rp?.first || !rp?.second) return false;
+      return rp.first !== rp.second;
+    }
+    case "singleMatrix": {
+      const m = (v ?? {}) as Record<string, string>;
+      return q.rows.every((r) => typeof m[r.id] === "string" && m[r.id].length > 0);
     }
   }
 }
 
-/** 제출 직전 전 섹션 검증 — localStorage contact(step) 우회 방지 */
 export function findFirstUnansweredRequired(
   answers: Record<string, unknown>,
   displayOrder: CDisplayOrder | null
@@ -85,12 +97,11 @@ export function getVisibleQuestions(
   return questions.filter((q) => isQuestionVisible(q, answers));
 }
 
-/** E3=적극 검토 OR E6=신청 시 연락처 필수 */
+/** F29=적극 검토 OR F34=신청 시 연락처 필수 */
 export function isPhoneRequired(answers: Record<string, unknown>): boolean {
-  return answers["E3"] === "1" || answers["E6"] === "1";
+  return answers["F29"] === "1" || answers["F34"] === "1";
 }
 
-/** C9 보기 무작위 순서 적용 */
 export function getShuffledMultiOptions(
   question: Question,
   valueOrder: string[] | undefined
@@ -104,15 +115,15 @@ export function getShuffledMultiOptions(
     .filter((o): o is Option => o != null);
 }
 
-/** 섹션 C: C_pain 순서 + C9(마지막) */
+/** 섹션 C: C_pain 순서 + Q20·Deep Dive(정의 순) */
 export function getOrderedSectionCQuestions(
   questions: Question[],
   displayOrder: CDisplayOrder
 ): Question[] {
   const map = new Map(questions.map((q) => [q.id, q]));
-  const ordered = displayOrder.C_pain
+  const orderedPain = displayOrder.C_pain
     .map((id) => map.get(id))
     .filter((q): q is Question => q != null);
-  const c9 = map.get(TOP3_QUESTION_ID);
-  return c9 ? [...ordered, c9] : ordered;
+  const rest = questions.filter((q) => !C_PAIN_SET.has(q.id));
+  return [...orderedPain, ...rest];
 }

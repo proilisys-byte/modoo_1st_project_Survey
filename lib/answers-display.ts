@@ -51,7 +51,7 @@ function formatMulti(
           return `${i + 1}순위 ${base}: ${other.trim()}`;
         }
       }
-      if (q.id === "C9" && q.exact === 3) {
+      if (q.exact === 3 || q.id === "F28") {
         return `${i + 1}순위 ${base}`;
       }
       return base;
@@ -99,6 +99,27 @@ function formatRank(q: Question, value: unknown): string {
     .join(" | ");
 }
 
+function formatRankPick(q: Question, value: unknown): string {
+  if (q.type !== "rankPick") return "";
+  const rp = value as { first?: string; second?: string } | undefined;
+  if (!rp?.first || !rp?.second) return "";
+  const first = q.options.find((o) => o.value === rp.first)?.label ?? rp.first;
+  const second = q.options.find((o) => o.value === rp.second)?.label ?? rp.second;
+  return `1순위: ${first} | 2순위: ${second}`;
+}
+
+function formatSingleMatrix(q: Question, value: unknown): string {
+  if (q.type !== "singleMatrix") return "";
+  const m = (value ?? {}) as Record<string, string>;
+  return q.rows
+    .map((row) => {
+      const v = m[row.id];
+      const label = q.options.find((o) => o.value === v)?.label ?? v ?? "-";
+      return `${row.label}: ${label}`;
+    })
+    .join(" | ");
+}
+
 function formatQuestion(
   q: Question,
   answers: Record<string, unknown>
@@ -119,6 +140,10 @@ function formatQuestion(
       return formatPriceMatrix(q, value);
     case "rank":
       return formatRank(q, value);
+    case "rankPick":
+      return formatRankPick(q, value);
+    case "singleMatrix":
+      return formatSingleMatrix(q, value);
     case "text":
       return typeof value === "string" ? value : "";
   }

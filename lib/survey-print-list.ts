@@ -111,6 +111,19 @@ function formatQuestionText(q: Question, num: number): string[] {
         lines.push(`   ${String.fromCharCode(97 + i)}. ${item.label}`)
       );
       break;
+    case "rankPick":
+      lines.push("   [1순위·2순위 — 서로 다른 보기 1개씩]");
+      q.options.forEach((op, i) =>
+        lines.push(`   ${String.fromCharCode(97 + i)}. ${op.label}`)
+      );
+      break;
+    case "singleMatrix":
+      lines.push("   [영역별 관리 방식 1개 선택]");
+      q.rows.forEach((row) => lines.push(`   · ${row.label}`));
+      q.options.forEach((op, i) =>
+        lines.push(`     ${String.fromCharCode(97 + i)}. ${op.label}`)
+      );
+      break;
   }
 
   lines.push("");
@@ -160,11 +173,11 @@ export function buildSurveyQuestionListPlainText(): string {
     "─".repeat(60),
     "",
     `${num + 1}. 이메일 (필수)`,
-    `${num + 2}. 회사명 (선택)`,
+    `${num + 2}. 회사명 (필수)`,
     `${num + 3}. 직책 (필수)`,
     `${num + 4}. 연락처 (조건부 필수)`,
     `${num + 5}. 진단 리포트 발송 개인정보 수집·이용 동의 (필수)`,
-    `${num + 6}. 관련 자료 수신 동의 (선택)`,
+    `${num + 6}. 관련 자료 수신 동의 (필수)`,
     ""
   );
 
