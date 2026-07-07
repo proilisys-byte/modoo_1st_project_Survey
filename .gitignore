@@ -12,3 +12,5 @@ analysis/data/processed/*.csv
 analysis/outputs/**/*
 !analysis/data/processed/.gitkeep
 analysis/src/__pycache__/
+.vercel
+.env*
