@@ -16,7 +16,8 @@
     "regenerate:smoke-fixture": "tsx scripts/regenerate-smoke-fixture.ts",
     "generate:question-map": "tsx scripts/generate-question-map.ts",
     "generate:survey-list": "tsx scripts/generate-survey-print-list.ts",
-    "test:email": "tsx scripts/test-email-send.ts"
+    "test:email": "tsx scripts/test-email-send.ts",
+    "db:apply": "tsx scripts/apply-supabase-sql.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
@@ -27,8 +28,11 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.22.0",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"

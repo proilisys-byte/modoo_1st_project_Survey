@@ -11,7 +11,8 @@
 | `02_rls_policies.sql` | RLS 활성화 + anon insert 전용 정책 | 2 |
 | `03_verify.sql` | 구축 결과 검증 (테이블·RLS·정책 확인) | 3 |
 | `04_survey_v2_columns.sql` | v2 메타 컬럼 추가 (기존 DB 마이그레이션) | 4 (v2 배포 시) |
-| `08_answers_display_v3.sql` | v3 `answers_display` 컬럼 + Excel 뷰 | 5 (v3 배포 시) |
+| `08_answers_display_v3.sql` | v3 `answers_display` 컬럼 + Excel 뷰 (v02) | 5 (v3 배포 시) |
+| `09_v_survey_responses_excel_v03.sql` | v03 문항 ID 기준 Excel 뷰 재작성 | 6 (v3 뷰 갱신) |
 | `99_reset.sql` | ⚠️ 전체 삭제 (재구축용, 데이터 파괴) | 필요 시에만 |
 
 ## 구축 절차
@@ -47,6 +48,9 @@
 
 **v3 배포(이미 DB가 있는 경우):** `08_answers_display_v3.sql`을 SQL Editor에서 실행하세요.
 (`answers_display jsonb` 컬럼 — v3 제출 시 필수)
+
+**v3 Excel 뷰 갱신:** `09_v_survey_responses_excel_v03.sql` 실행  
+(또는 로컬 `.env.local`에 `DIRECT_URL` 설정 후 `npm run db:apply`)
 
 ### 4단계 — Vercel 환경변수 등록
 
